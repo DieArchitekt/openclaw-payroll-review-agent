@@ -19,8 +19,8 @@ from .workbook import exported_rows, save_payroll_workbook, workbook_to_bytes
 
 def build_parser() -> argparse.ArgumentParser:
     """Return the command-line parser."""
-    parser = argparse.ArgumentParser(description="Process a payroll PDF into a reviewed Excel workbook.")
-    parser.add_argument("pdf", type=Path, help="Input payroll PDF file")
+    parser = argparse.ArgumentParser(description="Process a payroll file into a payroll review output.")
+    parser.add_argument("pdf", type=Path, help="Input payroll file")
     parser.add_argument("-o", "--out", type=Path, help="Output XLSX file")
 
     return parser
@@ -31,9 +31,9 @@ def run_cli(argv: list[str] | None = None) -> None:
     args: argparse.Namespace = build_parser().parse_args(argv)
 
     if not args.pdf.exists():
-        raise SystemExit(f"PDF file not found: {args.pdf}")
+        raise SystemExit(f"Payroll file not found: {args.pdf}")
 
-    print(f"{accent('Reading PDF:')} {args.pdf}")
+    print(f"{accent('Reading payroll file:')} {args.pdf}")
     extraction: PayrollExtraction = extract_payroll(args.pdf)
     print(f"{accent('Rows found:')} {important(len(extraction.rows))}")
     print(f"{accent('Fields reviewed:')} {important(len(extraction.field_matches))}")

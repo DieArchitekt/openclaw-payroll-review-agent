@@ -19,7 +19,7 @@ That file now handles the black, magenta, and ultraviolet theme for:
 
 - Tkinter
 - CLI output
-- Excel styling
+- review output styling
 - Streamlit CSS
 
 payroll logic should not be full of colour values.
@@ -36,7 +36,7 @@ Built a smarter v1 processor to move away from preset headers and fixed column p
 
 The new idea is:
 
-1. Read the PDF.
+1. Read the payroll file.
 2. Try to detect tables.
 3. Find likely header rows.
 4. Match messy headers to known payroll fields.
@@ -77,7 +77,7 @@ This makes the output more auditable.
 
 Removed company-specific leftovers from the v1 path for GDPR.
 
-The v1 processor is meant to be agnostic, not tied to a particular payroll provider or one sample PDF.
+The v1 processor is meant to be agnostic, not tied to a particular payroll provider or one sample file.
 
 ## Modularising v1
 
@@ -126,7 +126,7 @@ streamlit run .\processors\payroll_processor_v1\app.py
 
 The processor is now moving toward a generic payroll ingestion tool.
 
-The goal is to handle messy payroll PDFs without assuming one fixed header layout, while still giving a clean Excel output and an audit trail of what was recognised.
+The goal is to handle messy payroll files without assuming one fixed header layout, while still giving a clean review output and an audit trail of what was recognised.
 
 ## Other / Misc
 

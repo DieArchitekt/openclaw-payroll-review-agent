@@ -26,7 +26,7 @@ def output_value(row: dict[str, Any], field_name: str) -> Any:
 def create_payroll_workbook(extraction: PayrollExtraction) -> Workbook:
     """Return an XLSX workbook for the extracted payroll data."""
     if not extraction.rows:
-        raise ValueError("No payroll rows were found in the PDF.")
+        raise ValueError("No payroll rows were found in the payroll file.")
 
     wb: Workbook = Workbook()
     add_export_sheet(wb, extraction.rows)

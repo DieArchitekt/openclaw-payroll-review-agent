@@ -9,12 +9,12 @@ from .workbook import exported_rows, workbook_to_bytes
 
 
 def default_output_name(pdf_name: str) -> str:
-    """Return a sensible output filename for a PDF upload."""
+    """Return a sensible output filename for an uploaded payroll file."""
     return f"{Path(pdf_name).stem}_processed.xlsx"
 
 
-def write_uploaded_pdf(uploaded_file: UploadedPdf) -> Path:
-    """Save an uploaded PDF to a temporary file for pdfplumber."""
+def write_uploaded_file(uploaded_file: UploadedPdf) -> Path:
+    """Save an uploaded payroll file to a temporary file for pdfplumber."""
     temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".pdf")
     temp_file.write(uploaded_file.getvalue())
     temp_file.close()
@@ -23,27 +23,27 @@ def write_uploaded_pdf(uploaded_file: UploadedPdf) -> Path:
 
 
 def render_streamlit_app() -> None:
-    """Render the Streamlit payroll converter app."""
+    """Render the Streamlit payroll review agent app."""
     import streamlit as st
 
     use_streamlit_theme(st)
     render_header(st)
-    uploaded_file = st.file_uploader("Select a payroll PDF", type=["pdf"])
+    uploaded_file = st.file_uploader("Select a payroll file", type=["pdf"])
 
     if not uploaded_file:
-        st.info("Upload a payroll PDF to begin.")
+        st.info("Upload a payroll file to begin.")
         return
 
-    output_name: str = normalised_output_name(st.text_input("Excel filename", value=default_output_name(uploaded_file.name)))
+    output_name: str = normalised_output_name(st.text_input("Output filename", value=default_output_name(uploaded_file.name)))
 
-    if st.button("Convert PDF to Excel", type="primary"):
+    if st.button("Review payroll", type="primary"):
         process_upload(st, uploaded_file, output_name)
 
 
 def render_header(st: Any) -> None:
     """Render Streamlit title copy."""
-    st.title("Payroll PDF to Excel Converter")
-    st.caption("Recognise messy payroll fields, export the configured review workbook.")
+    st.title("Payroll Review Agent")
+    st.caption("Recognise messy payroll fields and export the configured review pack.")
 
 
 def normalised_output_name(output_name: str) -> str:
@@ -52,12 +52,12 @@ def normalised_output_name(output_name: str) -> str:
 
 
 def process_upload(st: Any, uploaded_file: UploadedPdf, output_name: str) -> None:
-    """Run extraction and render Streamlit results for an uploaded PDF."""
-    pdf_path: Path = write_uploaded_pdf(uploaded_file)
+    """Run extraction and render Streamlit results for an uploaded payroll file."""
+    payroll_path: Path = write_uploaded_file(uploaded_file)
 
     try:
         with st.spinner("Reading payroll fields..."):
-            extraction: PayrollExtraction = extract_payroll(pdf_path)
+            extraction: PayrollExtraction = extract_payroll(payroll_path)
 
         render_results(st, extraction, output_name)
 
@@ -65,11 +65,11 @@ def process_upload(st: Any, uploaded_file: UploadedPdf, output_name: str) -> Non
         st.error(f"Error: {exc}")
 
     finally:
-        pdf_path.unlink(missing_ok=True)
+        payroll_path.unlink(missing_ok=True)
 
 
 def render_results(st: Any, extraction: PayrollExtraction, output_name: str) -> None:
-    """Render extracted payroll results and workbook download."""
+    """Render extracted payroll results and review output download."""
     if not extraction.rows:
         st.error("No payroll rows were found.")
         return
@@ -84,7 +84,7 @@ def render_results(st: Any, extraction: PayrollExtraction, output_name: str) -> 
 def render_download(st: Any, extraction: PayrollExtraction, output_name: str) -> None:
     """Render the Streamlit XLSX download button."""
     st.download_button(
-        "Download Excel",
+        "Download review output",
         data=workbook_to_bytes(extraction),
         file_name=output_name,
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",

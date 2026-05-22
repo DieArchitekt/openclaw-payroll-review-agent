@@ -8,18 +8,21 @@ from .styles import format_standard_sheet, style_anomaly_sheet, write_summary_me
 
 
 def generate_review_workbook(
-    current_extraction,
-    previous_extraction,
-    reconciliation_df,
-    anomalies_df,
-    summary,
+    result,
     output_path=None,
 ) -> bytes | str:
     """Generate a payroll review agent output file."""
     buffer: BytesIO = BytesIO()
 
     with pd.ExcelWriter(buffer, engine="openpyxl") as writer:
-        write_report_sheets(writer, current_extraction, previous_extraction, reconciliation_df, anomalies_df, summary)
+        write_report_sheets(
+            writer,
+            result.current_extraction,
+            result.previous_extraction,
+            result.reconciliation_df,
+            result.anomalies_df,
+            result.summary,
+        )
         format_workbook(writer.book)
 
     workbook_bytes: bytes = buffer.getvalue()

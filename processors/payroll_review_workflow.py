@@ -6,10 +6,10 @@ import pandas as pd
 
 from processors.anomaly_detector_v1 import detect_anomalies
 from processors.payroll_processor_v1.extractor import extract_payroll
-from processors.payroll_processor_v1.models import PayrollExtraction, UploadedPdf
-from processors.payroll_processor_v1.streamlit_app import write_uploaded_file
-from processors.report_generator_v1 import generate_review_workbook
+from processors.payroll_processor_v1.io_utils import write_uploaded_file
+from processors.payroll_processor_v1.models import PayrollExtraction, UploadedFile
 from processors.reconciliation_engine_v1 import reconcile_payroll
+from processors.report_generator import generate_review_workbook
 
 
 @dataclass(slots=True)
@@ -20,13 +20,15 @@ class PayrollReviewResult:
     anomalies_df: pd.DataFrame
     summary: dict[str, Any]
     variance_threshold: float
+    review_workbook_bytes: bytes = b""
 
 
 def run_payroll_review(
-    current_file: UploadedPdf,
-    previous_file: UploadedPdf,
+    current_file: UploadedFile,
+    previous_file: UploadedFile,
     variance_threshold: float,
 ) -> PayrollReviewResult:
+    """Run extraction, reconciliation, anomaly detection, and report generation."""
     current_path: Path = write_uploaded_file(current_file)
     previous_path: Path = write_uploaded_file(previous_file)
 
@@ -44,8 +46,7 @@ def run_payroll_review(
         summary,
         variance_threshold=variance_threshold,
     )
-
-    return PayrollReviewResult(
+    result = PayrollReviewResult(
         current_extraction=current_extraction,
         previous_extraction=previous_extraction,
         reconciliation_df=reconciliation_df,
@@ -53,24 +54,13 @@ def run_payroll_review(
         summary=summary,
         variance_threshold=variance_threshold,
     )
+    result.review_workbook_bytes = generate_review_workbook(result)
 
-
-def build_review_workbook(result: PayrollReviewResult) -> bytes:
-    workbook = generate_review_workbook(
-        result.current_extraction,
-        result.previous_extraction,
-        result.reconciliation_df,
-        result.anomalies_df,
-        result.summary,
-    )
-
-    if isinstance(workbook, str):
-        return Path(workbook).read_bytes()
-
-    return workbook
+    return result
 
 
 def severity_counts(anomalies_df: pd.DataFrame) -> dict[str, int]:
+    """Return anomaly counts used by the dashboard summary."""
     if anomalies_df.empty or "Severity" not in anomalies_df.columns:
         return {"HIGH": 0, "MEDIUM": 0}
 

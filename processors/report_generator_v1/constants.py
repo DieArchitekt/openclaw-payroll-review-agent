@@ -1,4 +1,6 @@
-from openpyxl.styles import Font, PatternFill
+from openpyxl.styles import PatternFill
+
+from gui.excel_styles import excel_fill, excel_font
 
 
 CURRENCY_FIELDS: tuple[str, ...] = (
@@ -34,8 +36,8 @@ SHEET_NAMES: tuple[str, ...] = (
     "Previous Field Recognition",
 )
 
-HEADER_FILL = PatternFill("solid", fgColor="111111")
-HEADER_FONT = Font(bold=True, color="FFFFFF")
+HEADER_FILL = excel_fill("black")
+HEADER_FONT = excel_font("text", bold=True)
 HIGH_FILL = PatternFill("solid", fgColor="F4CCCC")
 MEDIUM_FILL = PatternFill("solid", fgColor="FCE5CD")
 SECTION_FILL = PatternFill("solid", fgColor="D9EAD3")

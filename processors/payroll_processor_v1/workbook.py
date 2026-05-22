@@ -4,10 +4,10 @@ from typing import Any
 
 from openpyxl import Workbook
 from openpyxl.cell.cell import Cell
-from openpyxl.styles import Alignment, Font, numbers
+from openpyxl.styles import Alignment
 from openpyxl.worksheet.worksheet import Worksheet
 
-from gui.theme import excel_color, excel_fills
+from gui.excel_styles import excel_fill, excel_font, money_format
 from .models import FieldMatch, PayrollExtraction
 from .schema import EXPORT_FIELDS, PAYROLL_SCHEMA, output_header
 
@@ -142,31 +142,28 @@ def size_columns(ws: Worksheet, headers: list[str]) -> None:
 
 def style_header_cell(cell: Cell) -> None:
     """Apply workbook styling to one header cell."""
-    fills: dict[str, object] = excel_fills()
-    cell.font = Font(bold=True, color=excel_color("text"))
-    cell.fill = fills["black"]
+    cell.font = excel_font("text", bold=True)
+    cell.fill = excel_fill("black")
     cell.alignment = Alignment(horizontal="center")
 
 
 def style_data_cell(cell: Cell, column_index: int, value: Any) -> None:
     """Apply workbook styling to one data cell."""
     if column_index > 1 and isinstance(value, (int, float)):
-        cell.number_format = numbers.FORMAT_NUMBER_00
+        money_format(cell)
 
     if column_index == 1:
-        cell.font = Font(color=excel_color("magenta"))
+        cell.font = excel_font("magenta")
 
 
 def style_total_label(cell: Cell) -> None:
     """Apply workbook styling to the totals label."""
-    fills: dict[str, object] = excel_fills()
-    cell.font = Font(bold=True, color=excel_color("black"))
-    cell.fill = fills["magenta"]
+    cell.font = excel_font("black", bold=True)
+    cell.fill = excel_fill("magenta")
 
 
 def style_total_value(cell: Cell) -> None:
     """Apply workbook styling to one totals formula cell."""
-    fills: dict[str, object] = excel_fills()
-    cell.font = Font(bold=True, color=excel_color("text"))
-    cell.fill = fills["ultraviolet"]
-    cell.number_format = numbers.FORMAT_NUMBER_00
+    cell.font = excel_font("text", bold=True)
+    cell.fill = excel_fill("ultraviolet")
+    money_format(cell)

@@ -93,7 +93,6 @@ processors/payroll_processor_v1/
   field_mapper.py
   models.py
   schema.py
-  streamlit_app.py
   workbook.py
 
 The split is roughly:
@@ -103,7 +102,7 @@ The split is roughly:
 - `field_mapper.py`: fuzzy matching and confidence scoring
 - `extractor.py`: PDF/table/text extraction
 - `workbook.py`: Excel output and audit sheet
-- `streamlit_app.py`: Streamlit workflow
+- `app/`: Streamlit workflow
 - `app.py`: Streamlit launcher
 - `__main__.py`: CLI launcher
 - `__init__.py`: public package surface

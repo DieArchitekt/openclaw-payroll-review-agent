@@ -2,7 +2,7 @@ from typing import Any
 
 import pandas as pd
 
-from processors.payroll_processor_v1.streamlit_app import field_match_rows
+from processors.payroll_processor_v1.recognition import field_match_rows
 from processors.payroll_processor_v1.workbook import exported_rows
 
 from .data import dataframe, summary_metrics

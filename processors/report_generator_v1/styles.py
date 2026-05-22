@@ -1,6 +1,8 @@
 from openpyxl.styles import Alignment, Font, PatternFill
 from openpyxl.worksheet.worksheet import Worksheet
 
+from gui.excel_styles import fill_row_cells, money_format
+
 from .constants import (
     CURRENCY_CONTAINS,
     CURRENCY_FIELDS,
@@ -67,7 +69,7 @@ def write_summary_metrics(ws: Worksheet) -> None:
             row[0].font = Font(bold=True)
 
         if is_money_metric(metric):
-            row[1].number_format = "#,##0.00"
+            money_format(row[1])
 
         if metric.endswith("%"):
             row[1].number_format = "0.00"
@@ -78,7 +80,7 @@ def apply_currency_formats(ws: Worksheet) -> None:
     for col_idx, header in header_map(ws).items():
         if is_currency_header(header):
             for row in ws.iter_rows(min_row=2, min_col=col_idx, max_col=col_idx, max_row=ws.max_row):
-                row[0].number_format = "#,##0.00"
+                money_format(row[0])
 
 
 def format_standard_sheet(ws: Worksheet) -> None:
@@ -119,5 +121,4 @@ def is_money_metric(metric: str) -> bool:
 
 def fill_row(row, fill: PatternFill) -> None:
     """Apply a fill to every cell in a row."""
-    for cell in row:
-        cell.fill = fill
+    fill_row_cells(row, fill)

@@ -2,13 +2,21 @@ from dataclasses import dataclass, field
 from typing import Any, Protocol
 
 
-class UploadedPdf(Protocol):
+class UploadedFile(Protocol):
     """Describe the uploaded file object used by Streamlit."""
 
     name: str
 
     def getvalue(self) -> bytes:
         """Return uploaded file contents as bytes."""
+
+
+@dataclass(slots=True)
+class RawPayrollSource:
+    """Store raw tables and text lines read from one payroll source file."""
+
+    tables: list[list[list[Any]]]
+    raw_lines: list[str] = field(default_factory=list)
 
 
 @dataclass(slots=True)

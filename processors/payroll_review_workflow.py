@@ -5,6 +5,7 @@ from typing import Any
 import pandas as pd
 
 from processors.anomaly_detector_v1 import detect_anomalies
+from processors.approval_workflow_v1 import ApprovalRecord, create_approval_record
 from processors.payroll_processor_v1.extractor import extract_payroll
 from processors.payroll_processor_v1.io_utils import write_uploaded_file
 from processors.payroll_processor_v1.models import PayrollExtraction, UploadedFile
@@ -20,6 +21,7 @@ class PayrollReviewResult:
     anomalies_df: pd.DataFrame
     summary: dict[str, Any]
     variance_threshold: float
+    approval_record: ApprovalRecord
     review_workbook_bytes: bytes = b""
 
 
@@ -27,6 +29,7 @@ def run_payroll_review(
     current_file: UploadedFile,
     previous_file: UploadedFile,
     variance_threshold: float,
+    prepared_by: str = "",
 ) -> PayrollReviewResult:
     """Run extraction, reconciliation, anomaly detection, and report generation."""
     current_path: Path = write_uploaded_file(current_file)
@@ -48,6 +51,7 @@ def run_payroll_review(
         summary,
         variance_threshold=variance_threshold,
     )
+    approval_record: ApprovalRecord = create_approval_record(prepared_by=prepared_by)
     result = PayrollReviewResult(
         current_extraction=current_extraction,
         previous_extraction=previous_extraction,
@@ -55,6 +59,7 @@ def run_payroll_review(
         anomalies_df=anomalies_df,
         summary=summary,
         variance_threshold=variance_threshold,
+        approval_record=approval_record,
     )
     result.review_workbook_bytes = generate_review_workbook(result)
 

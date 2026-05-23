@@ -30,6 +30,7 @@ SHEET_NAMES: tuple[str, ...] = (
     "Previous Payroll",
     "Reconciliation",
     "Anomalies",
+    "Control Summary",
     "Summary",
     "Approval",
     "Current Field Recognition",

@@ -24,6 +24,29 @@ def anomaly_counts(anomalies_df: pd.DataFrame) -> dict[str, int]:
     return {"HIGH": int(counts.get("HIGH", 0)), "MEDIUM": int(counts.get("MEDIUM", 0))}
 
 
+def control_summary_rows(anomalies_df: pd.DataFrame) -> list[dict[str, Any]]:
+    """Return exception counts by control category and severity."""
+    if anomalies_df is None or anomalies_df.empty:
+        return [
+            {"Control": "All controls", "HIGH": 0, "MEDIUM": 0, "LOW": 0, "Total": 0}
+        ]
+
+    grouped = (
+        anomalies_df.groupby(["Category", "Severity"])
+        .size()
+        .unstack(fill_value=0)
+        .reset_index()
+        .rename(columns={"Category": "Control"})
+    )
+
+    for severity in ("HIGH", "MEDIUM", "LOW"):
+        if severity not in grouped.columns:
+            grouped[severity] = 0
+
+    grouped["Total"] = grouped[["HIGH", "MEDIUM", "LOW"]].sum(axis=1)
+    return grouped[["Control", "HIGH", "MEDIUM", "LOW", "Total"]].to_dict("records")
+
+
 def summary_metrics(summary: dict, anomalies_df: pd.DataFrame) -> list[dict[str, Any]]:
     """Return summary rows with visual section breaks."""
     counts: dict[str, int] = anomaly_counts(anomalies_df)

@@ -1,4 +1,4 @@
-from processors.payroll_processor_v1.schema import EXPORT_FIELDS
+from processors.payroll_processor_v1.schema import PAYROLL_SCHEMA
 
 ANOMALY_COLUMNS: list[str] = [
     "Severity",
@@ -11,11 +11,22 @@ ANOMALY_COLUMNS: list[str] = [
     "Message",
 ]
 
-MONEY_FIELDS: list[str] = [field for field in EXPORT_FIELDS if field != "Employee"]
+MONEY_FIELDS: list[str] = [
+    field for field, config in PAYROLL_SCHEMA.items() if config["kind"] == "money"
+]
 VARIANCE_RULES: dict[str, str] = {
     "GrossPay": "HIGH",
     "NetPay": "HIGH",
     "PAYE": "MEDIUM",
     "EmployerNI": "MEDIUM",
     "EmployerPension": "MEDIUM",
+    "EmployeeNI": "MEDIUM",
+    "Bonus": "MEDIUM",
+    "Overtime": "MEDIUM",
+    "Commission": "MEDIUM",
 }
+
+HIGH_NET_PAY_THRESHOLD: float = 10000.0
+LOW_PAYE_TO_GROSS_RATIO: float = 0.05
+LOW_NI_TO_GROSS_RATIO: float = 0.02
+BACS_TOLERANCE: float = 0.01

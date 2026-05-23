@@ -41,6 +41,37 @@ def display_employee(value: Any) -> str:
     return str(value).strip()
 
 
+def text_value(value: Any) -> str:
+    """Return a stripped text value for control checks."""
+    if value is None or pd.isna(value):
+        return ""
+
+    return str(value).strip()
+
+
+def normalised_identifier(value: Any) -> str:
+    """Return a compact identifier for duplicate control checks."""
+    return "".join(
+        character for character in text_value(value).lower() if character.isalnum()
+    )
+
+
+def is_truthy(value: Any) -> bool:
+    """Return whether a payroll flag-like value reads as true."""
+    text = text_value(value).lower()
+    return text in {
+        "1",
+        "true",
+        "yes",
+        "y",
+        "approved",
+        "authorised",
+        "authorized",
+        "leaver",
+        "starter",
+    }
+
+
 def numeric(value: Any) -> float:
     """Return a numeric value for anomaly checks."""
     value = pd.to_numeric(value, errors="coerce")

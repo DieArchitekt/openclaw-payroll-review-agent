@@ -1,0 +1,6 @@
+Employee,BankAccount,NationalInsuranceNumber,GrossPay,NetPay,PAYE,EmployeeNI,EmployerPension,Department,CostCentre,LeaverFlag,StarterFlag,StarterApproval,BACSAmount,Bonus
+Jane Smith,12345678,AB123456C,12000,11000,0,0,0,,,No,No,Yes,11000,1000
+Jayne Smith,12345678,AB123456C,2000,1500,200,100,80,Operations,OPS,No,No,Yes,1600,0
+Leaver Person,87654321,CD123456D,1000,800,100,50,40,Finance,FIN,Yes,No,Yes,800,0
+Starter Person,11223344,EF123456E,1000,750,100,50,40,Finance,FIN,No,Yes,,750,0
+Negative Person,99887766,GH123456G,0,-50,0,0,0,Finance,FIN,No,No,Yes,-50,0

@@ -4,7 +4,22 @@ from types import SimpleNamespace
 from openpyxl import load_workbook
 
 from processors.anomaly_detector_v1 import detect_anomalies
-from processors.approval_workflow_v1 import STATUS_PREPARED
+import pytest
+
+from processors.approval_workflow_v1 import (
+    STATUS_APPROVED,
+    STATUS_EXPORTED,
+    STATUS_PREPARED,
+    STATUS_QUERIES_RAISED,
+    STATUS_REJECTED,
+    STATUS_REVIEWED,
+    approve_review,
+    create_approval_record,
+    mark_exported,
+    mark_reviewed,
+    raise_queries,
+    reject_review,
+)
 from processors.payroll_processor_v1.extractor import extract_payroll
 from processors.payroll_processor_v1.models import PayrollExtraction
 from processors.payroll_review_workflow import run_payroll_review
@@ -105,6 +120,7 @@ def test_review_pack_contains_expected_sheets():
         reconciliation_df=reconciliation_df,
         anomalies_df=anomalies_df,
         summary=summary,
+        approval_record=create_approval_record("preparer"),
     )
 
     payload = generate_review_workbook(result)
@@ -116,10 +132,13 @@ def test_review_pack_contains_expected_sheets():
         "Reconciliation",
         "Anomalies",
         "Summary",
+        "Approval",
         "Current Field Recognition",
         "Previous Field Recognition",
     ]
     assert workbook["Reconciliation"].freeze_panes == "A2"
+    assert workbook["Approval"]["A2"].value == "Review ID"
+    assert workbook["Summary"]["A2"].value == "approval status"
 
 
 def test_run_payroll_review_returns_complete_result():
@@ -144,3 +163,48 @@ def test_run_payroll_review_returns_complete_result():
     assert result.approval_record.prepared_by == "Payroll preparer"
     assert result.approval_record.review_id
     assert result.review_workbook_bytes.startswith(b"PK")
+
+
+def test_approval_transitions_allow_expected_flow():
+    record = create_approval_record("preparer")
+
+    mark_reviewed(record, "reviewer", "looks fine")
+    assert record.status == STATUS_REVIEWED
+    assert record.reviewed_by == "reviewer"
+    assert record.reviewer_comments == "looks fine"
+
+    approve_review(record, "approver", "approved")
+    assert record.status == STATUS_APPROVED
+    assert record.approved_by == "approver"
+    assert record.approval_comments == "approved"
+
+    mark_exported(record, "exporter")
+    assert record.status == STATUS_EXPORTED
+    assert record.exported_by == "exporter"
+
+
+def test_approval_queries_can_return_to_reviewed():
+    record = create_approval_record("preparer")
+
+    raise_queries(record, "reviewer", "missing explanation")
+    assert record.status == STATUS_QUERIES_RAISED
+    assert record.query_notes == "missing explanation"
+
+    mark_reviewed(record, "reviewer", "query resolved")
+    assert record.status == STATUS_REVIEWED
+    assert record.reviewer_comments == "query resolved"
+
+
+def test_approval_invalid_transitions_are_blocked():
+    prepared = create_approval_record("preparer")
+
+    with pytest.raises(ValueError):
+        approve_review(prepared, "approver")
+
+    rejected = create_approval_record("preparer")
+    mark_reviewed(rejected, "reviewer")
+    reject_review(rejected, "approver", "not acceptable")
+    assert rejected.status == STATUS_REJECTED
+
+    with pytest.raises(ValueError):
+        mark_exported(rejected, "exporter")

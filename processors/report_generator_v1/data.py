@@ -65,3 +65,63 @@ def summary_metrics(summary: dict, anomalies_df: pd.DataFrame) -> list[dict[str,
         {"Metric": "HIGH anomalies", "Value": counts["HIGH"]},
         {"Metric": "MEDIUM anomalies", "Value": counts["MEDIUM"]},
     ]
+
+
+def approval_summary_metrics(approval_record) -> list[dict[str, Any]]:
+    """Return approval status rows for the Summary sheet."""
+    if approval_record is None:
+        return []
+
+    return [
+        {"Metric": "Approval", "Value": ""},
+        {"Metric": "approval status", "Value": approval_record.status},
+        {"Metric": "review id", "Value": approval_record.review_id},
+        {
+            "Metric": "prepared at",
+            "Value": display_timestamp(approval_record.prepared_at),
+        },
+    ]
+
+
+def approval_rows(approval_record) -> list[dict[str, Any]]:
+    """Return rows for the Approval workbook sheet."""
+    if approval_record is None:
+        return []
+
+    return [
+        {"Field": "Review ID", "Value": approval_record.review_id},
+        {"Field": "Status", "Value": approval_record.status},
+        {"Field": "Prepared by", "Value": approval_record.prepared_by},
+        {
+            "Field": "Prepared at",
+            "Value": display_timestamp(approval_record.prepared_at),
+        },
+        {"Field": "Reviewed by", "Value": approval_record.reviewed_by},
+        {
+            "Field": "Reviewed at",
+            "Value": display_timestamp(approval_record.reviewed_at),
+        },
+        {"Field": "Approved by", "Value": approval_record.approved_by},
+        {
+            "Field": "Approved at",
+            "Value": display_timestamp(approval_record.approved_at),
+        },
+        {"Field": "Exported by", "Value": approval_record.exported_by},
+        {
+            "Field": "Exported at",
+            "Value": display_timestamp(approval_record.exported_at),
+        },
+        {"Field": "Reviewer comments", "Value": approval_record.reviewer_comments},
+        {"Field": "Approval comments", "Value": approval_record.approval_comments},
+        {"Field": "Query notes", "Value": approval_record.query_notes},
+        {"Field": "Rejection reason", "Value": approval_record.rejection_reason},
+        {
+            "Field": "Last updated at",
+            "Value": display_timestamp(approval_record.last_updated_at),
+        },
+    ]
+
+
+def display_timestamp(value: Any) -> str:
+    """Return a workbook-friendly timestamp string."""
+    return value.isoformat(timespec="seconds") if value else ""

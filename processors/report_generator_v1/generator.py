@@ -22,6 +22,7 @@ def generate_review_workbook(
             result.reconciliation_df,
             result.anomalies_df,
             result.summary,
+            getattr(result, "approval_record", None),
         )
         format_workbook(writer.book)
 

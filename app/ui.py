@@ -11,6 +11,7 @@ from app.config import (
     MIN_VARIANCE_THRESHOLD,
 )
 from processors.payroll_review_workflow import PayrollReviewResult, run_payroll_review
+from app.views.approval import render_approval
 from app.views.anomalies import render_anomalies
 from app.views.downloads import render_downloads
 from app.views.fields import render_field_recognition
@@ -88,6 +89,7 @@ def render_review(result: PayrollReviewResult) -> None:
     render_summary_cards(result)
 
     tab_names = [
+        "Approval",
         "Anomalies",
         "Reconciliation",
         "Current Payroll",
@@ -96,6 +98,7 @@ def render_review(result: PayrollReviewResult) -> None:
         "Downloads",
     ]
     (
+        approval_tab,
         anomalies_tab,
         reconciliation_tab,
         current_tab,
@@ -103,6 +106,9 @@ def render_review(result: PayrollReviewResult) -> None:
         fields_tab,
         downloads_tab,
     ) = st.tabs(tab_names)
+
+    with approval_tab:
+        render_approval(result)
 
     with anomalies_tab:
         render_anomalies(result.anomalies_df)

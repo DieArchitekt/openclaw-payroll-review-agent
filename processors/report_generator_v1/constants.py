@@ -31,6 +31,7 @@ SHEET_NAMES: tuple[str, ...] = (
     "Reconciliation",
     "Anomalies",
     "Summary",
+    "Approval",
     "Current Field Recognition",
     "Previous Field Recognition",
 )

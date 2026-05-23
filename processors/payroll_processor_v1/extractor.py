@@ -25,7 +25,9 @@ def extract_payroll(source_path: Path) -> PayrollExtraction:
 
 def extract_tables(source: RawPayrollSource) -> PayrollExtraction:
     """Return payroll data extracted from recognised source tables."""
-    extraction: PayrollExtraction = PayrollExtraction(rows=[], raw_lines=source.raw_lines)
+    extraction: PayrollExtraction = PayrollExtraction(
+        rows=[], raw_lines=source.raw_lines
+    )
 
     for table in source.tables:
         append_table_rows(extraction, clean_table(table))
@@ -44,7 +46,7 @@ def append_table_rows(extraction: PayrollExtraction, table: list[list[str]]) -> 
         return
 
     headers: list[str] = table[header_index]
-    data_rows: list[list[str]] = table[header_index + 1:]
+    data_rows: list[list[str]] = table[header_index + 1 :]
     matches: list[FieldMatch] = unique_field_matches(headers, data_rows)
 
     extraction.field_matches.extend(matches)
@@ -53,4 +55,10 @@ def append_table_rows(extraction: PayrollExtraction, table: list[list[str]]) -> 
 
 def unmapped_headers(matches: list[FieldMatch]) -> list[str]:
     """Return sorted source headers that were not mapped to a canonical field."""
-    return sorted({match.source_header for match in matches if match.status == "unmapped" and match.source_header})
+    return sorted(
+        {
+            match.source_header
+            for match in matches
+            if match.status == "unmapped" and match.source_header
+        }
+    )

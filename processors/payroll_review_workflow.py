@@ -39,7 +39,9 @@ def run_payroll_review(
         current_path.unlink(missing_ok=True)
         previous_path.unlink(missing_ok=True)
 
-    reconciliation_df, summary = reconcile_payroll(current_extraction.rows, previous_extraction.rows)
+    reconciliation_df, summary = reconcile_payroll(
+        current_extraction.rows, previous_extraction.rows
+    )
     anomalies_df: pd.DataFrame = detect_anomalies(
         current_extraction.rows,
         reconciliation_df,

@@ -2,7 +2,6 @@ from openpyxl.styles import PatternFill
 
 from gui.excel_styles import excel_fill, excel_font
 
-
 CURRENCY_FIELDS: tuple[str, ...] = (
     "GrossPay",
     "PreTaxPension",

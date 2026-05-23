@@ -6,8 +6,9 @@ from .models import FieldMatch, PayrollExtraction
 from .row_normaliser import row_has_payroll_data
 from .schema import POSITIONAL_FALLBACK_FIELDS, field_is_exported
 
-
-SPACED_ROW_PATTERN: re.Pattern[str] = re.compile(r"^(\d+)?\s*([A-Za-z][A-Za-z\s,'\-.]+?)\s+(.+)$")
+SPACED_ROW_PATTERN: re.Pattern[str] = re.compile(
+    r"^(\d+)?\s*([A-Za-z][A-Za-z\s,'\-.]+?)\s+(.+)$"
+)
 
 
 def extract_lines_as_fallback(raw_lines: list[str]) -> list[dict[str, Any]]:
@@ -62,7 +63,11 @@ def add_fallback_matches(extraction: PayrollExtraction) -> None:
                 source_header=f"positional fallback: {field_name}",
                 canonical_field=field_name,
                 confidence=0.5,
-                status="exported" if field_is_exported(field_name) else "recognised_ignored",
+                status=(
+                    "exported"
+                    if field_is_exported(field_name)
+                    else "recognised_ignored"
+                ),
                 reason="fallback position from dense payroll row",
             )
         )

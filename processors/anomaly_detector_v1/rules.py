@@ -26,7 +26,16 @@ def duplicate_employee_anomalies(current_rows: list[dict]) -> list[dict[str, Any
             seen[key] = employee
 
     return [
-        anomaly("HIGH", "Duplicate Employee", employee, "Employee", employee, "", "", f"Duplicate employee name found in current payroll: {employee}")
+        anomaly(
+            "HIGH",
+            "Duplicate Employee",
+            employee,
+            "Employee",
+            employee,
+            "",
+            "",
+            f"Duplicate employee name found in current payroll: {employee}",
+        )
         for employee in duplicates.values()
     ]
 
@@ -40,16 +49,40 @@ def status_anomalies(reconciliation_df: pd.DataFrame) -> list[dict[str, Any]]:
 
         if status == "Missing":
             employee: str = display_employee(row.get("Employee"))
-            anomalies.append(anomaly("HIGH", "Missing Employee", employee, "Employee", "", employee, "", "Employee is missing from the current payroll."))
+            anomalies.append(
+                anomaly(
+                    "HIGH",
+                    "Missing Employee",
+                    employee,
+                    "Employee",
+                    "",
+                    employee,
+                    "",
+                    "Employee is missing from the current payroll.",
+                )
+            )
 
         if status == "New":
             employee = display_employee(row.get("Employee"))
-            anomalies.append(anomaly("MEDIUM", "New Employee", employee, "Employee", employee, "", "", "Employee appears in the current payroll but not the previous payroll."))
+            anomalies.append(
+                anomaly(
+                    "MEDIUM",
+                    "New Employee",
+                    employee,
+                    "Employee",
+                    employee,
+                    "",
+                    "",
+                    "Employee appears in the current payroll but not the previous payroll.",
+                )
+            )
 
     return anomalies
 
 
-def variance_anomalies(reconciliation_df: pd.DataFrame, variance_threshold: float) -> list[dict[str, Any]]:
+def variance_anomalies(
+    reconciliation_df: pd.DataFrame, variance_threshold: float
+) -> list[dict[str, Any]]:
     """Return anomalies for employee-level field movements over threshold."""
     anomalies: list[dict[str, Any]] = []
 
@@ -58,12 +91,16 @@ def variance_anomalies(reconciliation_df: pd.DataFrame, variance_threshold: floa
             continue
 
         for field, severity in VARIANCE_RULES.items():
-            anomalies.extend(field_variance_anomaly(row, field, severity, variance_threshold))
+            anomalies.extend(
+                field_variance_anomaly(row, field, severity, variance_threshold)
+            )
 
     return anomalies
 
 
-def field_variance_anomaly(row: pd.Series, field: str, severity: str, variance_threshold: float) -> list[dict[str, Any]]:
+def field_variance_anomaly(
+    row: pd.Series, field: str, severity: str, variance_threshold: float
+) -> list[dict[str, Any]]:
     """Return a single variance anomaly when one field exceeds the threshold."""
     change_pct: float = numeric(row.get(f"{field} Change %"))
 
@@ -99,7 +136,18 @@ def zero_net_pay_anomalies(current_rows: list[dict]) -> list[dict[str, Any]]:
 
         if numeric(row.get("NetPay")) == 0.0 and employee_key not in seen:
             seen.add(employee_key)
-            anomalies.append(anomaly("HIGH", "Zero NetPay", employee, "NetPay", 0.0, "", "", f"Zero NetPay found for {employee}."))
+            anomalies.append(
+                anomaly(
+                    "HIGH",
+                    "Zero NetPay",
+                    employee,
+                    "NetPay",
+                    0.0,
+                    "",
+                    "",
+                    f"Zero NetPay found for {employee}.",
+                )
+            )
 
     return anomalies
 
@@ -119,7 +167,18 @@ def negative_value_anomalies(current_rows: list[dict]) -> list[dict[str, Any]]:
 
             if value < 0 and issue_key not in seen:
                 seen.add(issue_key)
-                anomalies.append(anomaly("HIGH", "Negative Value", employee, field, value, "", "", f"Negative {field} value found for {employee}."))
+                anomalies.append(
+                    anomaly(
+                        "HIGH",
+                        "Negative Value",
+                        employee,
+                        field,
+                        value,
+                        "",
+                        "",
+                        f"Negative {field} value found for {employee}.",
+                    )
+                )
 
     return anomalies
 

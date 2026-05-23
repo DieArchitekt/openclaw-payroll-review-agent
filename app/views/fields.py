@@ -11,7 +11,13 @@ def render_field_recognition(result: PayrollReviewResult) -> None:
     left, right = st.columns(2)
 
     with left:
-        render_table("Current field recognition", pd.DataFrame(field_match_rows(result.current_extraction.field_matches)))
+        render_table(
+            "Current field recognition",
+            pd.DataFrame(field_match_rows(result.current_extraction.field_matches)),
+        )
 
     with right:
-        render_table("Previous field recognition", pd.DataFrame(field_match_rows(result.previous_extraction.field_matches)))
+        render_table(
+            "Previous field recognition",
+            pd.DataFrame(field_match_rows(result.previous_extraction.field_matches)),
+        )

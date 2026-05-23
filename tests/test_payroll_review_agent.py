@@ -41,16 +41,46 @@ def test_extract_payroll_from_csv_with_dynamic_headers(tmp_path):
 
 def test_reconciliation_and_anomalies_flag_expected_rows():
     current_rows = [
-        {"Employee": "Ada Lovelace", "GrossPay": 3600.0, "PAYE": 500.0, "NetPay": 2600.0, "EmployerNI": 320.0, "EmployerPension": 150.0},
-        {"Employee": "Grace Hopper", "GrossPay": 2500.0, "PAYE": 300.0, "NetPay": 2000.0, "EmployerNI": 250.0, "EmployerPension": 120.0},
+        {
+            "Employee": "Ada Lovelace",
+            "GrossPay": 3600.0,
+            "PAYE": 500.0,
+            "NetPay": 2600.0,
+            "EmployerNI": 320.0,
+            "EmployerPension": 150.0,
+        },
+        {
+            "Employee": "Grace Hopper",
+            "GrossPay": 2500.0,
+            "PAYE": 300.0,
+            "NetPay": 2000.0,
+            "EmployerNI": 250.0,
+            "EmployerPension": 120.0,
+        },
     ]
     previous_rows = [
-        {"Employee": "Ada Lovelace", "GrossPay": 3000.0, "PAYE": 400.0, "NetPay": 2350.0, "EmployerNI": 300.0, "EmployerPension": 150.0},
-        {"Employee": "Alan Turing", "GrossPay": 2800.0, "PAYE": 350.0, "NetPay": 2200.0, "EmployerNI": 280.0, "EmployerPension": 130.0},
+        {
+            "Employee": "Ada Lovelace",
+            "GrossPay": 3000.0,
+            "PAYE": 400.0,
+            "NetPay": 2350.0,
+            "EmployerNI": 300.0,
+            "EmployerPension": 150.0,
+        },
+        {
+            "Employee": "Alan Turing",
+            "GrossPay": 2800.0,
+            "PAYE": 350.0,
+            "NetPay": 2200.0,
+            "EmployerNI": 280.0,
+            "EmployerPension": 130.0,
+        },
     ]
 
     reconciliation_df, summary = reconcile_payroll(current_rows, previous_rows)
-    anomalies_df = detect_anomalies(current_rows, reconciliation_df, summary, variance_threshold=10.0)
+    anomalies_df = detect_anomalies(
+        current_rows, reconciliation_df, summary, variance_threshold=10.0
+    )
 
     assert set(reconciliation_df["Status"]) == {"Existing", "New", "Missing"}
     assert summary["new_employee_count"] == 1
@@ -59,8 +89,12 @@ def test_reconciliation_and_anomalies_flag_expected_rows():
 
 
 def test_review_pack_contains_expected_sheets():
-    current = PayrollExtraction(rows=[{"Employee": "Ada Lovelace", "GrossPay": 3000.0, "NetPay": 2350.0}])
-    previous = PayrollExtraction(rows=[{"Employee": "Ada Lovelace", "GrossPay": 2900.0, "NetPay": 2300.0}])
+    current = PayrollExtraction(
+        rows=[{"Employee": "Ada Lovelace", "GrossPay": 3000.0, "NetPay": 2350.0}]
+    )
+    previous = PayrollExtraction(
+        rows=[{"Employee": "Ada Lovelace", "GrossPay": 2900.0, "NetPay": 2300.0}]
+    )
     reconciliation_df, summary = reconcile_payroll(current.rows, previous.rows)
     anomalies_df = detect_anomalies(current.rows, reconciliation_df, summary)
 

@@ -17,7 +17,9 @@ def reconcile_payroll(current_rows, previous_rows) -> tuple[pd.DataFrame, dict]:
     return reconciliation, summary
 
 
-def merged_reconciliation_frame(current_df: pd.DataFrame, previous_df: pd.DataFrame) -> pd.DataFrame:
+def merged_reconciliation_frame(
+    current_df: pd.DataFrame, previous_df: pd.DataFrame
+) -> pd.DataFrame:
     """Return an outer-joined comparison DataFrame."""
     merged: pd.DataFrame = current_df.merge(
         previous_df,
@@ -28,7 +30,9 @@ def merged_reconciliation_frame(current_df: pd.DataFrame, previous_df: pd.DataFr
     )
 
     merged["Employee"] = merged.apply(display_employee_name, axis=1)
-    merged["Status"] = merged["_merge"].map({"both": "Existing", "left_only": "New", "right_only": "Missing"})
+    merged["Status"] = merged["_merge"].map(
+        {"both": "Existing", "left_only": "New", "right_only": "Missing"}
+    )
     fill_numeric_columns(merged)
 
     return build_reconciliation_columns(merged)
@@ -51,7 +55,9 @@ def build_reconciliation_columns(merged: pd.DataFrame) -> pd.DataFrame:
     return output[reconciliation_column_order()]
 
 
-def add_comparison_columns(output: pd.DataFrame, merged: pd.DataFrame, field: str) -> None:
+def add_comparison_columns(
+    output: pd.DataFrame, merged: pd.DataFrame, field: str
+) -> None:
     """Add current, previous, change, and change-percent columns for a field."""
     current_col: str = f"{field}_current"
     previous_col: str = f"{field}_previous"
@@ -59,7 +65,9 @@ def add_comparison_columns(output: pd.DataFrame, merged: pd.DataFrame, field: st
     output[f"Current {field}"] = merged[current_col]
     output[f"Previous {field}"] = merged[previous_col]
     output[f"{field} Change"] = merged[current_col] - merged[previous_col]
-    output[f"{field} Change %"] = percent_change(merged[current_col], merged[previous_col])
+    output[f"{field} Change %"] = percent_change(
+        merged[current_col], merged[previous_col]
+    )
 
 
 def reconciliation_column_order() -> list[str]:
@@ -67,6 +75,13 @@ def reconciliation_column_order() -> list[str]:
     columns: list[str] = ["Employee", "Status"]
 
     for field in COMPARE_FIELDS:
-        columns.extend([f"Current {field}", f"Previous {field}", f"{field} Change", f"{field} Change %"])
+        columns.extend(
+            [
+                f"Current {field}",
+                f"Previous {field}",
+                f"{field} Change",
+                f"{field} Change %",
+            ]
+        )
 
     return columns

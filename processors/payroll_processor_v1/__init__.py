@@ -2,7 +2,6 @@ import argparse
 import sys
 from pathlib import Path
 
-
 ROOT_DIR: Path = Path(__file__).resolve().parents[2]
 
 if str(ROOT_DIR) not in sys.path:
@@ -18,7 +17,9 @@ from .workbook import exported_rows, save_payroll_workbook, workbook_to_bytes
 
 def build_parser() -> argparse.ArgumentParser:
     """Return the command-line parser."""
-    parser = argparse.ArgumentParser(description="Process a payroll file into a payroll review output.")
+    parser = argparse.ArgumentParser(
+        description="Process a payroll file into a payroll review output."
+    )
     parser.add_argument("source", type=Path, help="Input payroll file")
     parser.add_argument("-o", "--out", type=Path, help="Output XLSX file")
 

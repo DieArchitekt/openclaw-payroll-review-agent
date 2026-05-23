@@ -20,9 +20,17 @@ def render_summary_cards(result: PayrollReviewResult) -> None:
     cols[5].metric("Medium anomalies", counts["MEDIUM"])
 
     cost_cols = st.columns(4)
-    cost_cols[0].metric("Current NetPay", money(summary.get("current_total_net_pay", 0.0)))
-    cost_cols[1].metric("NetPay change", money(summary.get("net_pay_change", 0.0)), f"{summary.get('net_pay_change_pct', 0.0):.2f}%")
-    cost_cols[2].metric("Current employer cost", money(summary.get("current_total_employer_cost", 0.0)))
+    cost_cols[0].metric(
+        "Current NetPay", money(summary.get("current_total_net_pay", 0.0))
+    )
+    cost_cols[1].metric(
+        "NetPay change",
+        money(summary.get("net_pay_change", 0.0)),
+        f"{summary.get('net_pay_change_pct', 0.0):.2f}%",
+    )
+    cost_cols[2].metric(
+        "Current employer cost", money(summary.get("current_total_employer_cost", 0.0))
+    )
     cost_cols[3].metric(
         "Employer cost change",
         money(summary.get("employer_cost_change", 0.0)),

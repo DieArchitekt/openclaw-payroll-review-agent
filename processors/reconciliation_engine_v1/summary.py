@@ -4,7 +4,9 @@ from .constants import EMPLOYER_COST_FIELDS
 from .math_utils import percent_change
 
 
-def build_summary(current_df: pd.DataFrame, previous_df: pd.DataFrame, reconciliation: pd.DataFrame) -> dict:
+def build_summary(
+    current_df: pd.DataFrame, previous_df: pd.DataFrame, reconciliation: pd.DataFrame
+) -> dict:
     """Return summary metrics for the payroll comparison."""
     current_total_net_pay: float = total(current_df, "NetPay")
     previous_total_net_pay: float = total(previous_df, "NetPay")
@@ -19,11 +21,16 @@ def build_summary(current_df: pd.DataFrame, previous_df: pd.DataFrame, reconcili
         "current_total_net_pay": current_total_net_pay,
         "previous_total_net_pay": previous_total_net_pay,
         "net_pay_change": current_total_net_pay - previous_total_net_pay,
-        "net_pay_change_pct": percent_change(current_total_net_pay, previous_total_net_pay),
+        "net_pay_change_pct": percent_change(
+            current_total_net_pay, previous_total_net_pay
+        ),
         "current_total_employer_cost": current_total_employer_cost,
         "previous_total_employer_cost": previous_total_employer_cost,
-        "employer_cost_change": current_total_employer_cost - previous_total_employer_cost,
-        "employer_cost_change_pct": percent_change(current_total_employer_cost, previous_total_employer_cost),
+        "employer_cost_change": current_total_employer_cost
+        - previous_total_employer_cost,
+        "employer_cost_change_pct": percent_change(
+            current_total_employer_cost, previous_total_employer_cost
+        ),
     }
 
 

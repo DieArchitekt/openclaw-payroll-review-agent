@@ -3,8 +3,12 @@ from difflib import SequenceMatcher
 from typing import Any, Iterable
 
 from .models import FieldMatch
-from .schema import HEADER_CONFIDENCE_THRESHOLD, PAYROLL_SCHEMA, field_is_exported, field_kind
-
+from .schema import (
+    HEADER_CONFIDENCE_THRESHOLD,
+    PAYROLL_SCHEMA,
+    field_is_exported,
+    field_kind,
+)
 
 NUMBER_PATTERN: re.Pattern[str] = re.compile(r"-?\(?\u00a3?\d[\d,]*\.?\d*\)?")
 
@@ -107,10 +111,14 @@ def infer_field(header: str, sample_values: list[Any]) -> FieldMatch:
             best_score = score
             best_reason = reason
 
-    best_score, best_reason = boost_numeric_match(best_field, best_score, best_reason, sample_values)
+    best_score, best_reason = boost_numeric_match(
+        best_field, best_score, best_reason, sample_values
+    )
 
     if best_field and best_score >= HEADER_CONFIDENCE_THRESHOLD:
-        status: str = "exported" if field_is_exported(best_field) else "recognised_ignored"
+        status: str = (
+            "exported" if field_is_exported(best_field) else "recognised_ignored"
+        )
         return FieldMatch(header, best_field, round(best_score, 3), status, best_reason)
 
     return FieldMatch(header, None, round(best_score, 3), "unmapped", best_reason)
@@ -123,7 +131,11 @@ def boost_numeric_match(
     sample_values: list[Any],
 ) -> tuple[float, str]:
     """Return a slightly stronger score when a money field has numeric samples."""
-    if field_name and field_kind(field_name) in {"money", "number"} and numeric_density(sample_values) > 0.8:
+    if (
+        field_name
+        and field_kind(field_name) in {"money", "number"}
+        and numeric_density(sample_values) > 0.8
+    ):
         return min(1.0, score + 0.05), f"{reason}; numeric column"
 
     return score, reason

@@ -22,8 +22,16 @@ def write_report_sheets(
     write_dataframe(writer, "Reconciliation", reconciliation_df)
     write_dataframe(writer, "Anomalies", anomalies_df)
     write_summary_sheet(writer, summary, anomalies_df)
-    write_dataframe(writer, "Current Field Recognition", field_match_rows(current_extraction.field_matches))
-    write_dataframe(writer, "Previous Field Recognition", field_match_rows(previous_extraction.field_matches))
+    write_dataframe(
+        writer,
+        "Current Field Recognition",
+        field_match_rows(current_extraction.field_matches),
+    )
+    write_dataframe(
+        writer,
+        "Previous Field Recognition",
+        field_match_rows(previous_extraction.field_matches),
+    )
 
 
 def write_dataframe(writer: pd.ExcelWriter, sheet_name: str, data: Any) -> None:
@@ -31,6 +39,10 @@ def write_dataframe(writer: pd.ExcelWriter, sheet_name: str, data: Any) -> None:
     dataframe(data).to_excel(writer, sheet_name=sheet_name, index=False)
 
 
-def write_summary_sheet(writer: pd.ExcelWriter, summary: dict, anomalies_df: pd.DataFrame) -> None:
+def write_summary_sheet(
+    writer: pd.ExcelWriter, summary: dict, anomalies_df: pd.DataFrame
+) -> None:
     """Write the review summary sheet."""
-    pd.DataFrame(summary_metrics(summary, anomalies_df)).to_excel(writer, sheet_name="Summary", index=False, header=False)
+    pd.DataFrame(summary_metrics(summary, anomalies_df)).to_excel(
+        writer, sheet_name="Summary", index=False, header=False
+    )

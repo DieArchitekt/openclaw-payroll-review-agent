@@ -46,7 +46,9 @@ def style_anomaly_sheet(ws: Worksheet) -> None:
 def auto_size_columns(ws: Worksheet) -> None:
     """Auto-size worksheet columns based on visible content."""
     for column_cells in ws.columns:
-        values = ["" if cell.value is None else str(cell.value) for cell in column_cells]
+        values = [
+            "" if cell.value is None else str(cell.value) for cell in column_cells
+        ]
         width = min(max(max((len(value) for value in values), default=0) + 2, 12), 42)
         ws.column_dimensions[column_cells[0].column_letter].width = width
 
@@ -79,7 +81,9 @@ def apply_currency_formats(ws: Worksheet) -> None:
     """Apply two-decimal formatting to currency-like columns."""
     for col_idx, header in header_map(ws).items():
         if is_currency_header(header):
-            for row in ws.iter_rows(min_row=2, min_col=col_idx, max_col=col_idx, max_row=ws.max_row):
+            for row in ws.iter_rows(
+                min_row=2, min_col=col_idx, max_col=col_idx, max_row=ws.max_row
+            ):
                 money_format(row[0])
 
 
@@ -110,13 +114,17 @@ def find_column(ws: Worksheet, header: str) -> int | None:
 
 def is_currency_header(header: str) -> bool:
     """Return whether a column header should receive currency formatting."""
-    return header in CURRENCY_FIELDS or any(token in header for token in CURRENCY_CONTAINS)
+    return header in CURRENCY_FIELDS or any(
+        token in header for token in CURRENCY_CONTAINS
+    )
 
 
 def is_money_metric(metric: str) -> bool:
     """Return whether a summary metric is money-like."""
     metric = metric.lower()
-    return any(token in metric for token in ("net pay", "employer cost")) and not metric.endswith("%")
+    return any(
+        token in metric for token in ("net pay", "employer cost")
+    ) and not metric.endswith("%")
 
 
 def fill_row(row, fill: PatternFill) -> None:

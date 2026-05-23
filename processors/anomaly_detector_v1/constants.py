@@ -1,6 +1,5 @@
 from processors.payroll_processor_v1.schema import EXPORT_FIELDS
 
-
 ANOMALY_COLUMNS: list[str] = [
     "Severity",
     "Category",

@@ -14,12 +14,17 @@ from .schema import EXPORT_FIELDS, PAYROLL_SCHEMA, output_header
 
 def exported_rows(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
     """Return rows reduced to configured output fields only."""
-    return [{output_header(field): output_value(row, field) for field in EXPORT_FIELDS} for row in rows]
+    return [
+        {output_header(field): output_value(row, field) for field in EXPORT_FIELDS}
+        for row in rows
+    ]
 
 
 def output_value(row: dict[str, Any], field_name: str) -> Any:
     """Return an exportable value for a canonical field."""
-    default: Any = 0.0 if PAYROLL_SCHEMA[field_name]["kind"] in {"money", "number"} else ""
+    default: Any = (
+        0.0 if PAYROLL_SCHEMA[field_name]["kind"] in {"money", "number"} else ""
+    )
     return row.get(field_name, default)
 
 
@@ -68,7 +73,9 @@ def write_header_row(ws: Worksheet, headers: list[str]) -> None:
         style_header_cell(cell)
 
 
-def write_export_rows(ws: Worksheet, headers: list[str], rows: list[dict[str, Any]]) -> list[int]:
+def write_export_rows(
+    ws: Worksheet, headers: list[str], rows: list[dict[str, Any]]
+) -> list[int]:
     """Write exported payroll rows and return their row numbers."""
     data_rows: list[int] = []
     current_row: int = 2
@@ -81,7 +88,9 @@ def write_export_rows(ws: Worksheet, headers: list[str], rows: list[dict[str, An
     return data_rows
 
 
-def write_export_row(ws: Worksheet, row_number: int, headers: list[str], row: dict[str, Any]) -> None:
+def write_export_row(
+    ws: Worksheet, row_number: int, headers: list[str], row: dict[str, Any]
+) -> None:
     """Write one exported payroll row."""
     for col_idx, header in enumerate(headers, start=1):
         value: Any = row.get(header, "")
@@ -104,7 +113,9 @@ def write_totals_row(ws: Worksheet, headers: list[str], data_rows: list[int]) ->
         write_total_formula(ws, totals_row, col_idx, first_data_row, last_data_row)
 
 
-def write_total_formula(ws: Worksheet, totals_row: int, col_idx: int, first_row: int, last_row: int) -> None:
+def write_total_formula(
+    ws: Worksheet, totals_row: int, col_idx: int, first_row: int, last_row: int
+) -> None:
     """Write one Excel SUM formula."""
     col_letter: str = chr(64 + col_idx)
     cell: Cell = ws.cell(row=totals_row, column=col_idx)
@@ -115,7 +126,13 @@ def write_total_formula(ws: Worksheet, totals_row: int, col_idx: int, first_row:
 def add_recognition_sheet(wb: Workbook, extraction: PayrollExtraction) -> None:
     """Create an audit sheet showing recognised, ignored, and unmapped fields."""
     ws: Worksheet = wb.create_sheet("Field Recognition")
-    headers: list[str] = ["Source Header", "Canonical Field", "Status", "Confidence", "Reason"]
+    headers: list[str] = [
+        "Source Header",
+        "Canonical Field",
+        "Status",
+        "Confidence",
+        "Reason",
+    ]
     write_header_row(ws, headers)
 
     for row_idx, match in enumerate(extraction.field_matches, start=2):
@@ -127,7 +144,13 @@ def add_recognition_sheet(wb: Workbook, extraction: PayrollExtraction) -> None:
 
 def write_recognition_row(ws: Worksheet, row_idx: int, match: FieldMatch) -> None:
     """Write one field-recognition audit row."""
-    values: list[Any] = [match.source_header, match.canonical_field or "", match.status, match.confidence, match.reason]
+    values: list[Any] = [
+        match.source_header,
+        match.canonical_field or "",
+        match.status,
+        match.confidence,
+        match.reason,
+    ]
 
     for col_idx, value in enumerate(values, start=1):
         cell: Cell = ws.cell(row=row_idx, column=col_idx, value=value)
@@ -137,7 +160,9 @@ def write_recognition_row(ws: Worksheet, row_idx: int, match: FieldMatch) -> Non
 def size_columns(ws: Worksheet, headers: list[str]) -> None:
     """Set readable widths for export columns."""
     for col_idx, header in enumerate(headers, start=1):
-        ws.column_dimensions[chr(64 + col_idx)].width = max(14, min(28, len(header) + 4))
+        ws.column_dimensions[chr(64 + col_idx)].width = max(
+            14, min(28, len(header) + 4)
+        )
 
 
 def style_header_cell(cell: Cell) -> None:

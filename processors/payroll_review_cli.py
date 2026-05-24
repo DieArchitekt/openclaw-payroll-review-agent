@@ -1,6 +1,8 @@
 import argparse
 import json
+import re
 from dataclasses import dataclass
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 
@@ -10,9 +12,13 @@ from processors.openclaw_file_pairing import (
     find_payroll_pair,
     wait_for_stable_payroll_pair,
 )
+from processors.openclaw_reporting import review_completion_message
 from processors.payroll_review_workflow import PayrollReviewResult, run_payroll_review
 
-DEFAULT_OUTPUT_PATH = Path("outputs/reviews/payroll_review.xlsx")
+DEFAULT_OUTPUT_DIR = Path("outputs/reviews")
+CURRENT_MARKER_PATTERN = re.compile(r"([_-])current$", re.IGNORECASE)
+PERIOD_PATTERN = re.compile(r"\d{4}-\d{2}")
+SAFE_PREFIX_PATTERN = re.compile(r"[^A-Za-z0-9._-]+")
 
 
 @dataclass(slots=True)
@@ -70,8 +76,17 @@ def build_parser() -> argparse.ArgumentParser:
         "-o",
         "--out",
         type=Path,
-        default=DEFAULT_OUTPUT_PATH,
-        help="Output review pack path",
+        help="Output review pack path. Overrides --output-dir naming.",
+    )
+    parser.add_argument(
+        "--output-dir",
+        type=Path,
+        default=DEFAULT_OUTPUT_DIR,
+        help="Folder for generated review packs when --out is not supplied",
+    )
+    parser.add_argument(
+        "--output-prefix",
+        help="Optional output file prefix, for example client-a_2026-05",
     )
     parser.add_argument(
         "--summary-json",
@@ -102,6 +117,7 @@ def run_cli(argv: list[str] | None = None) -> int:
     """Run the full payroll review from the command line."""
     args = build_parser().parse_args(argv)
     current_path, previous_path = input_paths(args)
+    output_path, summary_json_path = resolve_output_paths(args, current_path)
 
     result = run_payroll_review(
         LocalPayrollFile(current_path),
@@ -109,20 +125,22 @@ def run_cli(argv: list[str] | None = None) -> int:
         variance_threshold=args.variance_threshold,
         prepared_by=args.prepared_by,
     )
-    write_review_pack(args.out, result.review_workbook_bytes)
-    payload = review_summary_payload(result, current_path, previous_path, args.out)
+    write_review_pack(output_path, result.review_workbook_bytes)
+    payload = review_summary_payload(
+        result,
+        current_path,
+        previous_path,
+        output_path,
+        summary_json_path,
+    )
 
-    if args.summary_json:
-        write_json(args.summary_json, payload)
+    if summary_json_path:
+        write_json(summary_json_path, payload)
 
     if args.print_json:
         print(json.dumps(payload, indent=2))
     else:
-        print(f"Review pack written: {args.out}")
-        print(f"Review ID: {payload['review_id']}")
-        print(f"Approval status: {payload['approval_status']}")
-        print(f"High exceptions: {payload['high_exception_count']}")
-        print(f"Medium exceptions: {payload['medium_exception_count']}")
+        print(review_completion_message(payload))
 
     return 0
 
@@ -159,6 +177,86 @@ def validate_input_file(path: Path, label: str) -> None:
         raise SystemExit(f"{label} not found: {path}")
 
 
+def resolve_output_paths(
+    args: argparse.Namespace,
+    current_path: Path,
+) -> tuple[Path, Path | None]:
+    """Return workbook and summary paths without overwriting existing outputs."""
+    if args.out:
+        output_path = unused_path(args.out)
+        summary_path = unused_path(args.summary_json) if args.summary_json else None
+        return output_path, summary_path
+
+    prefix = output_prefix(current_path, args.output_prefix)
+    return unused_review_paths(args.output_dir, prefix)
+
+
+def output_prefix(
+    current_path: Path,
+    explicit_prefix: str | None = None,
+    timestamp: datetime | None = None,
+) -> str:
+    """Return a safe output prefix from an explicit value or current file name."""
+    if explicit_prefix:
+        return safe_output_prefix(explicit_prefix)
+
+    stem = current_path.stem.strip()
+    cleaned_stem = CURRENT_MARKER_PATTERN.sub("", stem).strip("_- ")
+
+    if PERIOD_PATTERN.search(cleaned_stem):
+        return safe_output_prefix(cleaned_stem)
+
+    return safe_output_prefix(f"payroll_review_{timestamp_slug(timestamp)}")
+
+
+def safe_output_prefix(value: str) -> str:
+    """Return a filesystem-safe output prefix."""
+    prefix = SAFE_PREFIX_PATTERN.sub("_", value.strip()).strip("._-")
+    return prefix or f"payroll_review_{timestamp_slug()}"
+
+
+def unused_review_paths(output_dir: Path, prefix: str) -> tuple[Path, Path]:
+    """Return matching workbook and summary paths that do not overwrite files."""
+    review_path = output_dir / f"{prefix}_review.xlsx"
+    summary_path = output_dir / f"{prefix}_summary.json"
+
+    if not review_path.exists() and not summary_path.exists():
+        return review_path, summary_path
+
+    base_prefix = f"{prefix}_{timestamp_slug()}"
+    candidate_review = output_dir / f"{base_prefix}_review.xlsx"
+    candidate_summary = output_dir / f"{base_prefix}_summary.json"
+    counter = 2
+
+    while candidate_review.exists() or candidate_summary.exists():
+        candidate_review = output_dir / f"{base_prefix}_{counter}_review.xlsx"
+        candidate_summary = output_dir / f"{base_prefix}_{counter}_summary.json"
+        counter += 1
+
+    return candidate_review, candidate_summary
+
+
+def unused_path(path: Path) -> Path:
+    """Return a path, adding a timestamp suffix if the requested path exists."""
+    if not path.exists():
+        return path
+
+    stem = f"{path.stem}_{timestamp_slug()}"
+    candidate = path.with_name(f"{stem}{path.suffix}")
+    counter = 2
+
+    while candidate.exists():
+        candidate = path.with_name(f"{stem}_{counter}{path.suffix}")
+        counter += 1
+
+    return candidate
+
+
+def timestamp_slug(timestamp: datetime | None = None) -> str:
+    """Return a timestamp suitable for generated file names."""
+    return (timestamp or datetime.now()).strftime("%Y-%m-%d_%H%M%S")
+
+
 def write_review_pack(output_path: Path, workbook_bytes: bytes) -> None:
     """Write review workbook bytes to disk."""
     output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -176,6 +274,7 @@ def review_summary_payload(
     current_path: Path,
     previous_path: Path,
     output_path: Path,
+    summary_json_path: Path | None = None,
 ) -> dict[str, Any]:
     """Return a redacted summary payload suitable for automation."""
     counts = anomaly_counts(result.anomalies_df)
@@ -187,6 +286,7 @@ def review_summary_payload(
         "current_file": current_path.name,
         "previous_file": previous_path.name,
         "review_pack": str(output_path),
+        "summary_json": str(summary_json_path) if summary_json_path else None,
         "variance_threshold": result.variance_threshold,
         "summary": result.summary,
         "high_exception_count": counts["HIGH"],

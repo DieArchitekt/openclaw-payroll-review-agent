@@ -1,5 +1,6 @@
 from io import BytesIO
 import json
+from pathlib import Path
 from types import SimpleNamespace
 
 from openpyxl import load_workbook
@@ -26,9 +27,10 @@ from processors.openclaw_file_pairing import (
     find_payroll_pair,
     wait_for_stable_payroll_pair,
 )
+from processors.openclaw_reporting import review_completion_message
 from processors.payroll_processor_v1.extractor import extract_payroll
 from processors.payroll_processor_v1.models import PayrollExtraction
-from processors.payroll_review_cli import run_cli
+from processors.payroll_review_cli import output_prefix, run_cli
 from processors.payroll_review_workflow import run_payroll_review
 from processors.reconciliation_engine_v1 import reconcile_payroll
 from processors.report_generator import generate_review_workbook
@@ -476,3 +478,77 @@ def test_full_review_cli_print_json_outputs_machine_readable_summary(tmp_path, c
     assert stdout_payload["approval_status"] == STATUS_PREPARED
     assert stdout_payload["review_id"] == file_payload["review_id"]
     assert output.exists()
+
+
+def test_cli_default_output_paths_are_named_and_do_not_overwrite(tmp_path):
+    current = tmp_path / "client-a_2026-05_current.csv"
+    previous = tmp_path / "client-a_2026-04_previous.csv"
+    output_dir = tmp_path / "reviews"
+    current.write_text(
+        "Employee,GrossPay,PAYE,EmployeeNI,NetPay,EmployerNI,EmployerPension\n"
+        "Ada Lovelace,3000,400,250,2350,300,150\n",
+        encoding="utf-8",
+    )
+    previous.write_text(
+        "Employee,GrossPay,PAYE,EmployeeNI,NetPay,EmployerNI,EmployerPension\n"
+        "Ada Lovelace,2900,390,240,2300,290,145\n",
+        encoding="utf-8",
+    )
+
+    first_exit_code = run_cli(
+        [
+            str(current),
+            str(previous),
+            "--output-dir",
+            str(output_dir),
+            "--prepared-by",
+            "OpenClaw",
+        ]
+    )
+    second_exit_code = run_cli(
+        [
+            str(current),
+            str(previous),
+            "--output-dir",
+            str(output_dir),
+            "--prepared-by",
+            "OpenClaw",
+        ]
+    )
+
+    review_packs = sorted(output_dir.glob("client-a_2026-05*_review.xlsx"))
+    summaries = sorted(output_dir.glob("client-a_2026-05*_summary.json"))
+    assert first_exit_code == 0
+    assert second_exit_code == 0
+    assert len(review_packs) == 2
+    assert len(summaries) == 2
+    assert review_packs[0].read_bytes().startswith(b"PK")
+
+
+def test_output_prefix_falls_back_to_timestamp_when_name_has_no_period():
+    prefix = output_prefix(Path("current.csv"))
+
+    assert prefix.startswith("payroll_review_")
+
+
+def test_openclaw_completion_message_is_redacted():
+    payload = {
+        "review_id": "REV-1",
+        "approval_status": "Prepared",
+        "review_pack": "outputs/reviews/client-a_2026-05_review.xlsx",
+        "high_exception_count": 2,
+        "medium_exception_count": 3,
+        "exception_count": 5,
+        "summary": {"current_total_net_pay": 12345.67},
+        "current_file": "client-a_2026-05_current.csv",
+    }
+
+    message = review_completion_message(payload)
+
+    assert "Review ID: REV-1" in message
+    assert "High exceptions: 2" in message
+    assert "Medium exceptions: 3" in message
+    assert "Total exceptions: 5" in message
+    assert "Human review is required before approval/export." in message
+    assert "12345.67" not in message
+    assert "client-a_2026-05_current.csv" not in message

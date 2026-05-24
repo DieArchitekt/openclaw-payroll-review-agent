@@ -3,6 +3,7 @@ param(
     [string]$Current = "",
     [string]$Previous = "",
     [string]$OutputFolder = ".\outputs\reviews",
+    [string]$OutputPrefix = "",
     [string]$PreparedBy = "OpenClaw",
     [double]$VarianceThreshold = 20.0,
     [switch]$WaitForPair,
@@ -25,8 +26,6 @@ if (-not (Test-Path -LiteralPath $PythonPath)) {
 $OutputPath = Join-Path $RepoRoot $OutputFolder
 New-Item -ItemType Directory -Force -Path $OutputPath | Out-Null
 
-$ReviewPackPath = Join-Path $OutputPath "payroll_review.xlsx"
-$SummaryJsonPath = Join-Path $OutputPath "payroll_review_summary.json"
 $CliPath = Join-Path $RepoRoot "payroll_review_cli.py"
 
 $Arguments = @($CliPath)
@@ -48,11 +47,14 @@ else {
 }
 
 $Arguments += @(
-    "--out", $ReviewPackPath,
-    "--summary-json", $SummaryJsonPath,
+    "--output-dir", $OutputPath,
     "--variance-threshold", $VarianceThreshold,
     "--prepared-by", $PreparedBy
 )
+
+if ($OutputPrefix) {
+    $Arguments += @("--output-prefix", $OutputPrefix)
+}
 
 if ($PrintJson) {
     $Arguments += "--print-json"

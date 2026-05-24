@@ -21,7 +21,11 @@ from processors.approval_workflow_v1 import (
     raise_queries,
     reject_review,
 )
-from processors.openclaw_file_pairing import discover_payroll_pairs, find_payroll_pair
+from processors.openclaw_file_pairing import (
+    discover_payroll_pairs,
+    find_payroll_pair,
+    wait_for_stable_payroll_pair,
+)
 from processors.payroll_processor_v1.extractor import extract_payroll
 from processors.payroll_processor_v1.models import PayrollExtraction
 from processors.payroll_review_cli import run_cli
@@ -413,3 +417,62 @@ def test_full_review_cli_can_use_incoming_root(tmp_path):
     assert output.exists()
     assert payload["current_file"] == "payroll_current.csv"
     assert payload["previous_file"] == "payroll_previous.csv"
+
+
+def test_wait_for_stable_payroll_pair_returns_existing_stable_pair(tmp_path):
+    current_dir = tmp_path / "current"
+    previous_dir = tmp_path / "previous"
+    current_dir.mkdir()
+    previous_dir.mkdir()
+    current_file = current_dir / "payroll_current.csv"
+    previous_file = previous_dir / "payroll_previous.csv"
+    current_file.write_text("current", encoding="utf-8")
+    previous_file.write_text("previous", encoding="utf-8")
+
+    pair = wait_for_stable_payroll_pair(
+        tmp_path,
+        timeout_seconds=1,
+        poll_interval_seconds=0.01,
+        stable_checks=1,
+    )
+
+    assert pair.current_path == current_file
+    assert pair.previous_path == previous_file
+
+
+def test_full_review_cli_print_json_outputs_machine_readable_summary(tmp_path, capsys):
+    current = tmp_path / "current.csv"
+    previous = tmp_path / "previous.csv"
+    output = tmp_path / "review.xlsx"
+    summary_json = tmp_path / "summary.json"
+    current.write_text(
+        "Employee,GrossPay,PAYE,EmployeeNI,NetPay,EmployerNI,EmployerPension\n"
+        "Ada Lovelace,3000,400,250,2350,300,150\n",
+        encoding="utf-8",
+    )
+    previous.write_text(
+        "Employee,GrossPay,PAYE,EmployeeNI,NetPay,EmployerNI,EmployerPension\n"
+        "Ada Lovelace,2900,390,240,2300,290,145\n",
+        encoding="utf-8",
+    )
+
+    exit_code = run_cli(
+        [
+            str(current),
+            str(previous),
+            "--out",
+            str(output),
+            "--summary-json",
+            str(summary_json),
+            "--print-json",
+            "--prepared-by",
+            "OpenClaw",
+        ]
+    )
+
+    stdout_payload = json.loads(capsys.readouterr().out)
+    file_payload = json.loads(summary_json.read_text(encoding="utf-8"))
+    assert exit_code == 0
+    assert stdout_payload["approval_status"] == STATUS_PREPARED
+    assert stdout_payload["review_id"] == file_payload["review_id"]
+    assert output.exists()

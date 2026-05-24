@@ -5,6 +5,10 @@ param(
     [string]$OutputFolder = ".\outputs\reviews",
     [string]$PreparedBy = "OpenClaw",
     [double]$VarianceThreshold = 20.0,
+    [switch]$WaitForPair,
+    [double]$WaitTimeoutSeconds = 60.0,
+    [double]$PollIntervalSeconds = 2.0,
+    [int]$StableChecks = 2,
     [switch]$PrintJson
 )
 
@@ -32,6 +36,15 @@ if ($Current -and $Previous) {
 }
 else {
     $Arguments += @("--incoming-root", $IncomingRoot)
+
+    if ($WaitForPair) {
+        $Arguments += @(
+            "--wait-for-pair",
+            "--wait-timeout", $WaitTimeoutSeconds,
+            "--poll-interval", $PollIntervalSeconds,
+            "--stable-checks", $StableChecks
+        )
+    }
 }
 
 $Arguments += @(

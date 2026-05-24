@@ -6,7 +6,10 @@ from typing import Any
 
 import pandas as pd
 
-from processors.openclaw_file_pairing import find_payroll_pair
+from processors.openclaw_file_pairing import (
+    find_payroll_pair,
+    wait_for_stable_payroll_pair,
+)
 from processors.payroll_review_workflow import PayrollReviewResult, run_payroll_review
 
 DEFAULT_OUTPUT_PATH = Path("outputs/reviews/payroll_review.xlsx")
@@ -39,6 +42,29 @@ def build_parser() -> argparse.ArgumentParser:
         "--incoming-root",
         type=Path,
         help="Incoming payroll folder containing current/ and previous/ subfolders",
+    )
+    parser.add_argument(
+        "--wait-for-pair",
+        action="store_true",
+        help="Wait for a matching incoming payroll pair before running",
+    )
+    parser.add_argument(
+        "--wait-timeout",
+        type=float,
+        default=60.0,
+        help="Seconds to wait for incoming files when --wait-for-pair is used",
+    )
+    parser.add_argument(
+        "--poll-interval",
+        type=float,
+        default=2.0,
+        help="Seconds between incoming folder checks when --wait-for-pair is used",
+    )
+    parser.add_argument(
+        "--stable-checks",
+        type=int,
+        default=2,
+        help="Matching file-size checks required before processing incoming files",
     )
     parser.add_argument(
         "-o",
@@ -105,8 +131,16 @@ def input_paths(args: argparse.Namespace) -> tuple[Path, Path]:
     """Return current and previous input paths from explicit files or an incoming folder."""
     if args.incoming_root:
         try:
-            pair = find_payroll_pair(args.incoming_root)
-        except (FileNotFoundError, ValueError) as exc:
+            if args.wait_for_pair:
+                pair = wait_for_stable_payroll_pair(
+                    args.incoming_root,
+                    timeout_seconds=args.wait_timeout,
+                    poll_interval_seconds=args.poll_interval,
+                    stable_checks=args.stable_checks,
+                )
+            else:
+                pair = find_payroll_pair(args.incoming_root)
+        except (FileNotFoundError, TimeoutError, ValueError) as exc:
             raise SystemExit(str(exc)) from exc
 
         return pair.current_path, pair.previous_path

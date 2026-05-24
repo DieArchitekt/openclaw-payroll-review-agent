@@ -1,4 +1,5 @@
 import re
+import time
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -36,6 +37,48 @@ def find_payroll_pair(incoming_root: Path) -> PayrollFilePair:
         )
 
     return pairs[0]
+
+
+def wait_for_stable_payroll_pair(
+    incoming_root: Path,
+    timeout_seconds: float = 60.0,
+    poll_interval_seconds: float = 2.0,
+    stable_checks: int = 2,
+) -> PayrollFilePair:
+    """Wait for one discoverable payroll pair whose file sizes have stopped changing."""
+    deadline = time.monotonic() + timeout_seconds
+    last_signature: tuple[tuple[str, int, int], tuple[str, int, int]] | None = None
+    stable_count = 0
+    last_error: Exception | None = None
+
+    while time.monotonic() <= deadline:
+        try:
+            pair = find_payroll_pair(incoming_root)
+            signature = pair_signature(pair)
+
+            if signature == last_signature:
+                stable_count += 1
+            else:
+                stable_count = 1
+                last_signature = signature
+
+            if stable_count >= stable_checks:
+                return pair
+        except (FileNotFoundError, ValueError) as exc:
+            last_error = exc
+            stable_count = 0
+            last_signature = None
+
+        time.sleep(poll_interval_seconds)
+
+    if last_error:
+        raise TimeoutError(
+            f"Timed out waiting for stable payroll pair: {last_error}"
+        ) from last_error
+
+    raise TimeoutError(
+        f"Timed out waiting for stable payroll pair under {incoming_root}."
+    )
 
 
 def discover_payroll_pairs(incoming_root: Path) -> list[PayrollFilePair]:
@@ -83,3 +126,16 @@ def pairing_key(path: Path, marker: str) -> str:
 def is_supported_payroll_file(path: Path) -> bool:
     """Return whether the path is a supported payroll input file."""
     return path.is_file() and path.suffix.lower() in SUPPORTED_EXTENSIONS
+
+
+def pair_signature(
+    pair: PayrollFilePair,
+) -> tuple[tuple[str, int, int], tuple[str, int, int]]:
+    """Return file signatures used to decide whether a pair is stable."""
+    return file_signature(pair.current_path), file_signature(pair.previous_path)
+
+
+def file_signature(path: Path) -> tuple[str, int, int]:
+    """Return a compact file stability signature."""
+    stat = path.stat()
+    return str(path), stat.st_size, stat.st_mtime_ns

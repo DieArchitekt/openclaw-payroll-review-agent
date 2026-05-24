@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
@@ -6,9 +6,11 @@ import pandas as pd
 
 from processors.anomaly_detector_v1 import detect_anomalies
 from processors.approval_workflow_v1 import ApprovalRecord, create_approval_record
+from processors.exception_resolution_v1 import add_anomaly_ids
 from processors.payroll_processor_v1.extractor import extract_payroll
 from processors.payroll_processor_v1.io_utils import write_uploaded_file
 from processors.payroll_processor_v1.models import PayrollExtraction, UploadedFile
+from processors.payroll_review_thresholds import default_thresholds
 from processors.reconciliation_engine_v1 import reconcile_payroll
 from processors.report_generator_v1 import generate_review_workbook
 
@@ -22,6 +24,9 @@ class PayrollReviewResult:
     summary: dict[str, Any]
     variance_threshold: float
     approval_record: ApprovalRecord
+    thresholds: dict[str, float] = field(default_factory=dict)
+    agent_activity: list[dict[str, Any]] = field(default_factory=list)
+    manifest: dict[str, Any] = field(default_factory=dict)
     review_workbook_bytes: bytes = b""
 
 
@@ -51,6 +56,7 @@ def run_payroll_review(
         summary,
         variance_threshold=variance_threshold,
     )
+    anomalies_df = add_anomaly_ids(anomalies_df)
     approval_record: ApprovalRecord = create_approval_record(prepared_by=prepared_by)
     result = PayrollReviewResult(
         current_extraction=current_extraction,
@@ -60,6 +66,15 @@ def run_payroll_review(
         summary=summary,
         variance_threshold=variance_threshold,
         approval_record=approval_record,
+        thresholds=default_thresholds(variance_threshold),
+        agent_activity=[
+            {
+                "Action": "run_payroll_review",
+                "Actor": prepared_by or "User",
+                "Status": "completed",
+                "Human Confirmed": "not required",
+            }
+        ],
     )
     result.review_workbook_bytes = generate_review_workbook(result)
 

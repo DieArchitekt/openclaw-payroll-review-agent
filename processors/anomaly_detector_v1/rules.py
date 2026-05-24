@@ -9,6 +9,7 @@ from .identity_rules import (
     duplicate_ni_number_anomalies,
     similar_name_duplicate_anomalies,
 )
+from .prompt_rules import prompt_injection_anomalies
 from .status_rules import (
     leaver_still_paid_anomalies,
     starter_without_approval_anomalies,
@@ -45,6 +46,7 @@ __all__ = [
     "missing_pension_anomalies",
     "negative_net_pay_anomalies",
     "negative_value_anomalies",
+    "prompt_injection_anomalies",
     "similar_name_duplicate_anomalies",
     "starter_without_approval_anomalies",
     "status_anomalies",

@@ -25,6 +25,20 @@ def resolve_output_paths(
     return unused_review_paths(args.output_dir, prefix)
 
 
+def resolve_manifest_path(args: argparse.Namespace, output_path: Path) -> Path:
+    if getattr(args, "manifest_json", None):
+        return unused_path(args.manifest_json)
+
+    name = output_path.name
+
+    if name.endswith("_review.xlsx"):
+        return unused_path(
+            output_path.with_name(name.replace("_review.xlsx", "_manifest.json"))
+        )
+
+    return unused_path(output_path.with_name(f"{output_path.stem}_manifest.json"))
+
+
 def output_prefix(
     current_path: Path,
     explicit_prefix: str | None = None,

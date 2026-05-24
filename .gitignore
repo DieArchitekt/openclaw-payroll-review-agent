@@ -3,7 +3,6 @@ __pycache__/
 .pytest_cache/
 *.pyc
 .env
-outputs/
 incoming_payroll/
 outputs/reviews/
 outputs/audit/

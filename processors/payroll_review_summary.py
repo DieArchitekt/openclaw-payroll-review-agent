@@ -14,6 +14,7 @@ def review_summary_payload(
     output_path: Path,
     summary_json_path: Path | None = None,
     receipt_json_path: Path | None = None,
+    manifest_json_path: Path | None = None,
     receipt: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     counts = anomaly_counts(result.anomalies_df)
@@ -29,6 +30,7 @@ def review_summary_payload(
         "review_pack": str(output_path),
         "summary_json": str(summary_json_path) if summary_json_path else None,
         "agent_receipt_json": str(receipt_json_path) if receipt_json_path else None,
+        "run_manifest_json": str(manifest_json_path) if manifest_json_path else None,
         "variance_threshold": result.variance_threshold,
         "summary": result.summary,
         "high_exception_count": counts["HIGH"],
@@ -39,6 +41,7 @@ def review_summary_payload(
         "ready_for_review": receipt.get("ready_for_review"),
         "ready_for_approval": receipt.get("ready_for_approval"),
         "blockers": receipt.get("blockers", []),
+        "file_hashes": receipt.get("file_hashes", {}),
     }
 
 

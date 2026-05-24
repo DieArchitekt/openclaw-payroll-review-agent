@@ -21,7 +21,7 @@ jobs:
           python -m pip install -r requirements-dev.txt
 
       - name: Check formatting
-        run: python -m black --check app gui processors tests payroll_review_cli.py
+        run: python -m black --check app gui processors tests
 
       - name: Run tests
         run: python -m pytest -q

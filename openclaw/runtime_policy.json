@@ -1,0 +1,51 @@
+{
+  "agent_mode": "read_only_review",
+  "working_directory": ".",
+  "allowed_commands": [
+    "scripts/run_openclaw_payroll_review.ps1",
+    "scripts/run_openclaw_dry_run.ps1",
+    "scripts/run_openclaw_payroll_review.sh",
+    "scripts/run_openclaw_dry_run.sh"
+  ],
+  "allowed_read_globs": [
+    "outputs/reviews/*_receipt.json",
+    "outputs/reviews/*_summary.json",
+    "outputs/reviews/*_manifest.json",
+    "openclaw/runtime_policy.json"
+  ],
+  "blocked_read_globs": [
+    "incoming_payroll/current/*",
+    "incoming_payroll/previous/*",
+    "real_data/*",
+    "*.xlsx",
+    "*.xlsm"
+  ],
+  "allowed_write_roots": ["outputs/reviews", "outputs/agent", "outputs/audit"],
+  "blocked_actions": [
+    "approve_review",
+    "reject_review",
+    "mark_exported",
+    "send_external_file",
+    "delete_file",
+    "move_source_file",
+    "archive_source_file",
+    "edit_source_file",
+    "install_package",
+    "run_arbitrary_shell",
+    "send_email",
+    "upload_file"
+  ],
+  "required_output_suffixes": [
+    "_review.xlsx",
+    "_summary.json",
+    "_receipt.json",
+    "_manifest.json"
+  ],
+  "required_receipt_flags": {
+    "agent_mode": "read_only_review",
+    "human_action_required": true,
+    "source_files_modified": false,
+    "external_messages_sent": false,
+    "approval_performed_by_agent": false
+  }
+}

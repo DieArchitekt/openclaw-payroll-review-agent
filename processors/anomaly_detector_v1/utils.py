@@ -6,7 +6,6 @@ from .constants import ANOMALY_COLUMNS
 
 
 def anomalies_dataframe(anomalies: list[dict[str, Any]]) -> pd.DataFrame:
-    """Return anomalies as a DataFrame with a stable column order."""
     return pd.DataFrame(anomalies, columns=ANOMALY_COLUMNS)
 
 
@@ -20,7 +19,6 @@ def anomaly(
     change_pct: Any,
     message: str,
 ) -> dict[str, Any]:
-    """Return one anomaly row."""
     return {
         "Severity": severity,
         "Category": category,
@@ -34,7 +32,6 @@ def anomaly(
 
 
 def display_employee(value: Any) -> str:
-    """Return a clean employee display value."""
     if value is None or pd.isna(value):
         return ""
 
@@ -42,7 +39,6 @@ def display_employee(value: Any) -> str:
 
 
 def text_value(value: Any) -> str:
-    """Return a stripped text value for control checks."""
     if value is None or pd.isna(value):
         return ""
 
@@ -50,14 +46,12 @@ def text_value(value: Any) -> str:
 
 
 def normalised_identifier(value: Any) -> str:
-    """Return a compact identifier for duplicate control checks."""
     return "".join(
         character for character in text_value(value).lower() if character.isalnum()
     )
 
 
 def is_truthy(value: Any) -> bool:
-    """Return whether a payroll flag-like value reads as true."""
     text = text_value(value).lower()
     return text in {
         "1",
@@ -73,7 +67,6 @@ def is_truthy(value: Any) -> bool:
 
 
 def numeric(value: Any) -> float:
-    """Return a numeric value for anomaly checks."""
     value = pd.to_numeric(value, errors="coerce")
 
     if pd.isna(value):
@@ -83,7 +76,6 @@ def numeric(value: Any) -> float:
 
 
 def safe_reconciliation(reconciliation_df: pd.DataFrame) -> pd.DataFrame:
-    """Return a reconciliation DataFrame with expected basics available."""
     if reconciliation_df is None or reconciliation_df.empty:
         return pd.DataFrame(columns=["Employee", "Status"])
 

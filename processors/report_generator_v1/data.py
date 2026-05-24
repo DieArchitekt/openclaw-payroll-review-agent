@@ -2,6 +2,8 @@ from typing import Any
 
 import pandas as pd
 
+from processors.versioning import PAYROLL_RULE_VERSION, PAYROLL_SCHEMA_VERSION
+
 
 def dataframe(data: Any) -> pd.DataFrame:
     """Return data as a pandas DataFrame."""
@@ -143,6 +145,27 @@ def approval_rows(approval_record) -> list[dict[str, Any]]:
             "Value": display_timestamp(approval_record.last_updated_at),
         },
     ]
+
+
+def run_metadata_rows(result) -> list[dict[str, Any]]:
+    """Return threshold and file-hash metadata rows for the workbook."""
+    if result is None:
+        return []
+
+    thresholds = getattr(result, "thresholds", {}) or {}
+    manifest = getattr(result, "manifest", {}) or {}
+    rows = [
+        {"Field": "Schema version", "Value": PAYROLL_SCHEMA_VERSION},
+        {"Field": "Rule version", "Value": PAYROLL_RULE_VERSION},
+    ]
+
+    for name, value in thresholds.items():
+        rows.append({"Field": name, "Value": value})
+
+    for name, value in (manifest.get("file_hashes") or {}).items():
+        rows.append({"Field": name, "Value": value})
+
+    return rows
 
 
 def display_timestamp(value: Any) -> str:

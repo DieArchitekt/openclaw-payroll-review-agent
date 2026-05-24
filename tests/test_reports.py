@@ -40,9 +40,11 @@ def test_review_pack_contains_expected_sheets():
         "Control Summary",
         "Summary",
         "Approval",
+        "Run Metadata",
         "Current Field Recognition",
         "Previous Field Recognition",
     ]
     assert workbook["Reconciliation"].freeze_panes == "A2"
     assert workbook["Approval"]["A2"].value == "Review ID"
     assert workbook["Summary"]["A2"].value == "approval status"
+    assert workbook["Run Metadata"]["A2"].value == "Schema version"

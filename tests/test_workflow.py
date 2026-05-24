@@ -32,4 +32,6 @@ def test_run_payroll_review_returns_complete_result():
     assert result.approval_record.status == STATUS_PREPARED
     assert result.approval_record.prepared_by == "Payroll preparer"
     assert result.approval_record.review_id
+    assert result.thresholds["variance_threshold"] == 20.0
+    assert result.agent_activity[0]["Action"] == "run_payroll_review"
     assert result.review_workbook_bytes.startswith(b"PK")

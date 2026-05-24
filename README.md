@@ -38,13 +38,10 @@ python -m processors.payroll_review_cli \
   --prepared-by "Local Review"
 ```
 
-The root `payroll_review_cli.py` file is kept as a small convenience wrapper,
-but CI and automation should prefer the module command above.
-
 ## Check the project
 
 ```bash
-python -m black --check app gui processors tests payroll_review_cli.py
+python -m black --check app gui processors tests
 python -m pytest -q
-python -m compileall -q app gui processors tests payroll_review_cli.py
+python -m compileall -q app gui processors tests
 ```

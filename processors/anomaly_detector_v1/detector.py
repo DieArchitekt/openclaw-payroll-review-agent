@@ -21,6 +21,7 @@ from .rules import (
     missing_pension_anomalies,
     negative_value_anomalies,
     negative_net_pay_anomalies,
+    prompt_injection_anomalies,
     similar_name_duplicate_anomalies,
     starter_without_approval_anomalies,
     status_anomalies,
@@ -48,6 +49,7 @@ def detect_anomalies(
     anomalies.extend(duplicate_bank_account_anomalies(current_rows))
     anomalies.extend(duplicate_ni_number_anomalies(current_rows))
     anomalies.extend(similar_name_duplicate_anomalies(current_rows))
+    anomalies.extend(prompt_injection_anomalies(current_rows))
     anomalies.extend(status_anomalies(reconciliation_df))
     anomalies.extend(variance_anomalies(reconciliation_df, variance_threshold))
     anomalies.extend(leaver_still_paid_anomalies(current_rows))

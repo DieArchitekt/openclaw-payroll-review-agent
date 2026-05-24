@@ -10,6 +10,7 @@ from .data import (
     approval_summary_metrics,
     control_summary_rows,
     dataframe,
+    run_metadata_rows,
     summary_metrics,
 )
 
@@ -22,6 +23,7 @@ def write_report_sheets(
     anomalies_df,
     summary,
     approval_record=None,
+    result=None,
 ) -> None:
     """Write all review output sheets."""
     write_dataframe(writer, "Current Payroll", exported_rows(current_extraction.rows))
@@ -31,6 +33,7 @@ def write_report_sheets(
     write_dataframe(writer, "Control Summary", control_summary_rows(anomalies_df))
     write_summary_sheet(writer, summary, anomalies_df, approval_record)
     write_approval_sheet(writer, approval_record)
+    write_dataframe(writer, "Run Metadata", run_metadata_rows(result))
     write_dataframe(
         writer,
         "Current Field Recognition",

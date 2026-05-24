@@ -11,6 +11,7 @@ from app.config import (
     MIN_VARIANCE_THRESHOLD,
 )
 from processors.payroll_review_workflow import PayrollReviewResult, run_payroll_review
+from app.views.agent_activity import render_agent_activity
 from app.views.approval import render_approval
 from app.views.anomalies import render_anomalies
 from app.views.downloads import render_downloads
@@ -95,6 +96,7 @@ def render_review(result: PayrollReviewResult) -> None:
         "Current Payroll",
         "Previous Payroll",
         "Field Recognition",
+        "Agent Activity",
         "Downloads",
     ]
     (
@@ -104,6 +106,7 @@ def render_review(result: PayrollReviewResult) -> None:
         current_tab,
         previous_tab,
         fields_tab,
+        agent_activity_tab,
         downloads_tab,
     ) = st.tabs(tab_names)
 
@@ -130,6 +133,9 @@ def render_review(result: PayrollReviewResult) -> None:
 
     with fields_tab:
         render_field_recognition(result)
+
+    with agent_activity_tab:
+        render_agent_activity(result)
 
     with downloads_tab:
         render_downloads(result)

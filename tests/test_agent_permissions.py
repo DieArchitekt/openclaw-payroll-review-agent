@@ -2,8 +2,14 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import pandas as pd
+import pytest
 
-from processors.agent_controls_v1 import build_agent_receipt, review_gate
+from processors.agent_controls_v1.actions import get_agent_action
+from processors.agent_controls_v1.approval_gate import (
+    agent_mark_reviewed_with_confirmation,
+    block_agent_approval,
+)
+from processors.agent_controls_v1.confirmations import HumanConfirmation
 from processors.agent_controls_v1.constants import (
     BLOCKER_NO_CURRENT_ROWS,
     BLOCKER_NO_PREVIOUS_ROWS,
@@ -11,11 +17,20 @@ from processors.agent_controls_v1.constants import (
     RECOMMEND_HUMAN_REVIEW,
     RECOMMEND_REVIEW_BLOCKERS,
 )
+from processors.agent_controls_v1.network_policy import assert_no_external_transmission
+from processors.agent_controls_v1.permissions import (
+    PERMISSION_APPROVE_REVIEW,
+    PERMISSION_READ_AGENT_RECEIPT,
+    check_permission,
+)
 from processors.agent_controls_v1.receipt import (
     RUN_STATUS_BLOCKED,
     RUN_STATUS_COMPLETED_WITH_EXCEPTIONS,
+    build_agent_receipt,
 )
+from processors.agent_controls_v1.review_gate import review_gate
 from processors.approval_workflow_v1 import create_approval_record
+from processors.approval_workflow_v1.constants import STATUS_REVIEWED
 from processors.openclaw_reporting import AGENT_MODE_READ_ONLY_REVIEW
 from processors.payroll_processor_v1.models import PayrollExtraction
 
@@ -109,3 +124,52 @@ def test_agent_receipt_blocks_empty_extraction():
     assert BLOCKER_NO_PREVIOUS_ROWS in receipt["blockers"]
     assert receipt["critical_controls"]["required_fields_mapped"] is False
     assert receipt["critical_controls"]["review_pack_generated"] is False
+
+
+def test_permission_model_allows_receipt_read_and_blocks_approval():
+    read_check = check_permission(PERMISSION_READ_AGENT_RECEIPT)
+    approval_check = check_permission(PERMISSION_APPROVE_REVIEW)
+
+    assert read_check.allowed is True
+    assert approval_check.allowed is False
+    assert approval_check.requires_confirmation is True
+
+
+def test_unknown_agent_action_is_blocked():
+    with pytest.raises(ValueError, match="not registered"):
+        get_agent_action("agent_delete_everything")
+
+
+def test_agent_approval_gate_requires_human_confirmation():
+    record = create_approval_record("CLI")
+
+    with pytest.raises(PermissionError):
+        agent_mark_reviewed_with_confirmation(record, "Reviewer", "", None)
+
+    confirmation = HumanConfirmation(
+        action="mark_reviewed",
+        review_id=record.review_id,
+        user_name="Reviewer",
+        reason="Reviewed in dashboard.",
+    )
+    updated = agent_mark_reviewed_with_confirmation(
+        record,
+        "Reviewer",
+        "Looks ready for approval.",
+        confirmation,
+    )
+
+    assert updated.status == STATUS_REVIEWED
+
+
+def test_agent_cannot_approve_or_export():
+    with pytest.raises(PermissionError, match="may not approve"):
+        block_agent_approval()
+
+
+def test_network_policy_blocks_external_messages_and_files():
+    with pytest.raises(PermissionError, match="External messages"):
+        assert_no_external_transmission(sends_message=True)
+
+    with pytest.raises(PermissionError, match="External file transfers"):
+        assert_no_external_transmission(sends_file=True)

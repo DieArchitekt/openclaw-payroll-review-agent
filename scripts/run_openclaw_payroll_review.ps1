@@ -26,9 +26,7 @@ if (-not (Test-Path -LiteralPath $PythonPath)) {
 $OutputPath = Join-Path $RepoRoot $OutputFolder
 New-Item -ItemType Directory -Force -Path $OutputPath | Out-Null
 
-$CliPath = Join-Path $RepoRoot "payroll_review_cli.py"
-
-$Arguments = @($CliPath)
+$Arguments = @("-m", "processors.payroll_review_cli")
 
 if ($Current -and $Previous) {
     $Arguments += @($Current, $Previous)
@@ -60,7 +58,13 @@ if ($PrintJson) {
     $Arguments += "--print-json"
 }
 
-& $PythonPath @Arguments
+Push-Location $RepoRoot
+try {
+    & $PythonPath @Arguments
+}
+finally {
+    Pop-Location
+}
 
 if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE

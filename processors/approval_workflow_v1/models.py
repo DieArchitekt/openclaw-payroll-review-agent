@@ -6,12 +6,10 @@ from .constants import STATUS_PREPARED
 
 
 def new_review_id() -> str:
-    """Return a unique review id for one payroll approval record."""
     return str(uuid4())
 
 
 def current_timestamp() -> datetime:
-    """Return a timezone-aware timestamp for approval audit fields."""
     return datetime.now(UTC)
 
 

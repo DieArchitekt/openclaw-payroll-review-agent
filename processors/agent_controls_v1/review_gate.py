@@ -12,7 +12,6 @@ from processors.payroll_review_workflow import PayrollReviewResult
 
 
 def review_gate(result: PayrollReviewResult) -> dict[str, object]:
-    """Return the safe review status an automation agent is allowed to use."""
     high_count = severity_count(result.anomalies_df, "HIGH")
     medium_count = severity_count(result.anomalies_df, "MEDIUM")
     blockers = review_blockers(result, high_count)
@@ -31,7 +30,6 @@ def review_gate(result: PayrollReviewResult) -> dict[str, object]:
 
 
 def review_blockers(result: PayrollReviewResult, high_count: int) -> list[str]:
-    """Return blocker messages that prevent an agent from calling a review clear."""
     blockers: list[str] = []
 
     if not result.current_extraction.rows:
@@ -47,7 +45,6 @@ def review_blockers(result: PayrollReviewResult, high_count: int) -> list[str]:
 
 
 def severity_count(anomalies_df: pd.DataFrame, severity: str) -> int:
-    """Return the number of anomalies for a severity label."""
     if anomalies_df.empty or "Severity" not in anomalies_df.columns:
         return 0
 

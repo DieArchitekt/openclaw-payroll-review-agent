@@ -106,3 +106,64 @@ def test_finance_grade_controls_detect_expected_exceptions():
     assert "Negative NetPay" in categories
     assert "BACS Control Difference" in categories
     assert "Variable Pay Movement" in categories
+
+
+def test_bacs_control_is_ignored_when_no_bacs_column_exists():
+    current_rows = [
+        {
+            "Employee": "Ada Lovelace",
+            "GrossPay": 3000.0,
+            "PAYE": 400.0,
+            "EmployeeNI": 250.0,
+            "NetPay": 2350.0,
+            "EmployerNI": 300.0,
+            "EmployerPension": 150.0,
+        }
+    ]
+    previous_rows = [
+        {
+            "Employee": "Ada Lovelace",
+            "GrossPay": 3000.0,
+            "PAYE": 400.0,
+            "EmployeeNI": 250.0,
+            "NetPay": 2350.0,
+            "EmployerNI": 300.0,
+            "EmployerPension": 150.0,
+        }
+    ]
+
+    reconciliation_df, summary = reconcile_payroll(current_rows, previous_rows)
+    anomalies_df = detect_anomalies(current_rows, reconciliation_df, summary)
+
+    assert "BACS Control Difference" not in set(anomalies_df["Category"])
+
+
+def test_bacs_control_is_ignored_when_bacs_matches_net_pay_total():
+    current_rows = [
+        {
+            "Employee": "Ada Lovelace",
+            "GrossPay": 3000.0,
+            "PAYE": 400.0,
+            "EmployeeNI": 250.0,
+            "NetPay": 2350.0,
+            "EmployerNI": 300.0,
+            "EmployerPension": 150.0,
+            "BACSAmount": 2350.0,
+        }
+    ]
+    previous_rows = [
+        {
+            "Employee": "Ada Lovelace",
+            "GrossPay": 3000.0,
+            "PAYE": 400.0,
+            "EmployeeNI": 250.0,
+            "NetPay": 2350.0,
+            "EmployerNI": 300.0,
+            "EmployerPension": 150.0,
+        }
+    ]
+
+    reconciliation_df, summary = reconcile_payroll(current_rows, previous_rows)
+    anomalies_df = detect_anomalies(current_rows, reconciliation_df, summary)
+
+    assert "BACS Control Difference" not in set(anomalies_df["Category"])

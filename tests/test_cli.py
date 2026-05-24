@@ -67,6 +67,8 @@ def test_full_review_cli_writes_workbook_and_summary_json(tmp_path):
     assert payload["approval_status"] == "Prepared"
     assert payload["agent_mode"] == AGENT_MODE_READ_ONLY_REVIEW
     assert payload["agent_receipt_json"] == str(receipt_json)
+    assert payload["run_status"] == receipt["run_status"]
+    assert payload["recommended_next_action"] == receipt["recommended_next_action"]
     assert receipt["agent_mode"] == AGENT_MODE_READ_ONLY_REVIEW
     assert receipt["human_action_required"] is True
     assert receipt["source_files_modified"] is False
@@ -321,9 +323,34 @@ def test_openclaw_completion_message_is_redacted():
     assert "High exceptions: 2" in message
     assert "Medium exceptions: 3" in message
     assert "Total exceptions: 5" in message
-    assert "Human review is required before approval/export." in message
+    assert "Run status: completed" in message
+    assert (
+        "Recommended next action: Human review is required before approval/export."
+        in message
+    )
     assert "12345.67" not in message
     assert "client-a_2026-05_current.csv" not in message
+
+
+def test_openclaw_completion_message_reports_receipt_fields():
+    payload = {
+        "review_id": "REV-2",
+        "approval_status": "Prepared",
+        "review_pack": "outputs/reviews/review.xlsx",
+        "high_exception_count": 1,
+        "medium_exception_count": 0,
+        "exception_count": 1,
+        "run_status": "completed_with_exceptions",
+        "recommended_next_action": "Review HIGH anomalies before approving payroll.",
+    }
+
+    message = review_completion_message(payload)
+
+    assert "Run status: completed_with_exceptions" in message
+    assert (
+        "Recommended next action: Review HIGH anomalies before approving payroll."
+        in message
+    )
 
 
 def test_cli_rejects_unsupported_explicit_input_file(tmp_path):

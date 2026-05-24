@@ -130,6 +130,7 @@ def run_cli(argv: list[str] | None = None) -> int:
         prepared_by=args.prepared_by,
     )
     write_review_pack(output_path, result.review_workbook_bytes)
+    receipt = build_agent_receipt(result, output_path, summary_json_path)
     payload = review_summary_payload(
         result,
         current_path,
@@ -137,16 +138,14 @@ def run_cli(argv: list[str] | None = None) -> int:
         output_path,
         summary_json_path,
         receipt_json_path,
+        receipt,
     )
 
     if summary_json_path:
         write_json(summary_json_path, payload)
 
     if receipt_json_path:
-        write_json(
-            receipt_json_path,
-            build_agent_receipt(result, output_path, summary_json_path),
-        )
+        write_json(receipt_json_path, receipt)
 
     if args.print_json:
         print(json.dumps(payload, indent=2))

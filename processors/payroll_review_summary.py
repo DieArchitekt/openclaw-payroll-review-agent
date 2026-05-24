@@ -14,8 +14,10 @@ def review_summary_payload(
     output_path: Path,
     summary_json_path: Path | None = None,
     receipt_json_path: Path | None = None,
+    receipt: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     counts = anomaly_counts(result.anomalies_df)
+    receipt = receipt or {}
 
     return {
         "agent_mode": ACTIVE_AGENT_MODE,
@@ -32,6 +34,11 @@ def review_summary_payload(
         "high_exception_count": counts["HIGH"],
         "medium_exception_count": counts["MEDIUM"],
         "exception_count": int(len(result.anomalies_df)),
+        "run_status": receipt.get("run_status"),
+        "recommended_next_action": receipt.get("recommended_next_action"),
+        "ready_for_review": receipt.get("ready_for_review"),
+        "ready_for_approval": receipt.get("ready_for_approval"),
+        "blockers": receipt.get("blockers", []),
     }
 
 

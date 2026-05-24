@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="520" viewBox="0 0 1200 520" role="img" aria-labelledby="title desc">
+  <title id="title">OpenClaw payroll review architecture</title>
+  <desc id="desc">A restrained architecture diagram showing OpenClaw triggering local payroll review tools, producing evidence, and handing off to a human reviewer.</desc>
+  <rect width="1200" height="520" fill="#ffffff"/>
+  <style>
+    .box { fill: #ffffff; stroke: #1f2933; stroke-width: 1.6; rx: 4; }
+    .soft { fill: #f7f8fa; stroke: #1f2933; stroke-width: 1.6; rx: 4; }
+    .title { font: 600 20px Arial, sans-serif; fill: #111827; }
+    .label { font: 600 17px Arial, sans-serif; fill: #111827; }
+    .sub { font: 14px Arial, sans-serif; fill: #4b5563; }
+    .small { font: 13px Arial, sans-serif; fill: #4b5563; }
+    .line { stroke: #1f2933; stroke-width: 1.6; fill: none; marker-end: url(#arrow); }
+    .boundary { fill: none; stroke: #9ca3af; stroke-width: 1.4; stroke-dasharray: 8 6; rx: 8; }
+  </style>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L8,3 z" fill="#1f2933"/>
+    </marker>
+  </defs>
+
+  <text x="60" y="55" class="title">OpenClaw Payroll Review Agent</text>
+  <text x="60" y="82" class="sub">Constrained workflow automation for payroll review evidence</text>
+
+  <rect x="50" y="125" width="260" height="120" class="soft"/>
+  <text x="75" y="165" class="label">Incoming payroll</text>
+  <text x="75" y="195" class="sub">current file</text>
+  <text x="75" y="218" class="sub">previous file</text>
+
+  <rect x="390" y="105" width="300" height="160" class="box"/>
+  <text x="420" y="150" class="label">OpenClaw workflow</text>
+  <text x="420" y="180" class="sub">detect pair</text>
+  <text x="420" y="203" class="sub">run approved command</text>
+  <text x="420" y="226" class="sub">read receipt and manifest</text>
+
+  <rect x="770" y="105" width="330" height="160" class="soft"/>
+  <text x="800" y="150" class="label">Local review tools</text>
+  <text x="800" y="180" class="sub">extract -> reconcile -> detect</text>
+  <text x="800" y="203" class="sub">generate workbook</text>
+  <text x="800" y="226" class="sub">write structured outputs</text>
+
+  <path d="M310 185 H382" class="line"/>
+  <path d="M690 185 H762" class="line"/>
+
+  <rect x="200" y="335" width="260" height="105" class="box"/>
+  <text x="230" y="375" class="label">Evidence outputs</text>
+  <text x="230" y="405" class="sub">workbook, summary</text>
+  <text x="230" y="428" class="sub">receipt, manifest, hashes</text>
+
+  <rect x="565" y="335" width="260" height="105" class="box"/>
+  <text x="595" y="375" class="label">Human review</text>
+  <text x="595" y="405" class="sub">approve, reject</text>
+  <text x="595" y="428" class="sub">or raise queries</text>
+
+  <path d="M935 265 V305 H330 V327" class="line"/>
+  <path d="M460 388 H557" class="line"/>
+
+  <rect x="35" y="95" width="1110" height="385" class="boundary"/>
+  <text x="880" y="462" class="small">Read-only review boundary</text>
+</svg>

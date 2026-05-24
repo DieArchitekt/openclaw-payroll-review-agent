@@ -14,7 +14,7 @@ from processors.openclaw_file_pairing import (
     find_payroll_pair,
     wait_for_stable_payroll_pair,
 )
-from processors.openclaw_reporting import review_completion_message
+from processors.openclaw_reporting import ACTIVE_AGENT_MODE, review_completion_message
 from processors.payroll_review_workflow import PayrollReviewResult, run_payroll_review
 
 DEFAULT_OUTPUT_DIR = Path("outputs/reviews")
@@ -293,6 +293,7 @@ def review_summary_payload(
     counts = anomaly_counts(result.anomalies_df)
 
     return {
+        "agent_mode": ACTIVE_AGENT_MODE,
         "review_id": result.approval_record.review_id,
         "approval_status": result.approval_record.status,
         "prepared_by": result.approval_record.prepared_by,

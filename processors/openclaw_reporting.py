@@ -1,5 +1,8 @@
 from typing import Any
 
+AGENT_MODE_READ_ONLY_REVIEW = "read_only_review"
+ACTIVE_AGENT_MODE = AGENT_MODE_READ_ONLY_REVIEW
+
 
 def review_completion_message(payload: dict[str, Any]) -> str:
     """Return the safe completion message an automation agent can show users."""

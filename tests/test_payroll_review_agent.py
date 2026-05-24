@@ -27,7 +27,11 @@ from processors.openclaw_file_pairing import (
     find_payroll_pair,
     wait_for_stable_payroll_pair,
 )
-from processors.openclaw_reporting import review_completion_message
+from processors.openclaw_reporting import (
+    ACTIVE_AGENT_MODE,
+    AGENT_MODE_READ_ONLY_REVIEW,
+    review_completion_message,
+)
 from processors.payroll_processor_v1.extractor import extract_payroll
 from processors.payroll_processor_v1.models import PayrollExtraction
 from processors.payroll_review_cli import (
@@ -365,6 +369,7 @@ def test_full_review_cli_writes_workbook_and_summary_json(tmp_path):
     assert output.exists()
     assert output.read_bytes().startswith(b"PK")
     assert payload["approval_status"] == STATUS_PREPARED
+    assert payload["agent_mode"] == AGENT_MODE_READ_ONLY_REVIEW
     assert payload["prepared_by"] == "OpenClaw"
     assert payload["current_file"] == "current.csv"
 
@@ -481,6 +486,7 @@ def test_full_review_cli_print_json_outputs_machine_readable_summary(tmp_path, c
     file_payload = json.loads(summary_json.read_text(encoding="utf-8"))
     assert exit_code == 0
     assert stdout_payload["approval_status"] == STATUS_PREPARED
+    assert stdout_payload["agent_mode"] == ACTIVE_AGENT_MODE
     assert stdout_payload["review_id"] == file_payload["review_id"]
     assert output.exists()
 

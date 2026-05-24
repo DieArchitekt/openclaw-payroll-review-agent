@@ -1,6 +1,7 @@
 import argparse
 import json
 import re
+import sys
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
@@ -9,6 +10,7 @@ from typing import Any
 import pandas as pd
 
 from processors.openclaw_file_pairing import (
+    SUPPORTED_EXTENSIONS,
     find_payroll_pair,
     wait_for_stable_payroll_pair,
 )
@@ -176,6 +178,17 @@ def validate_input_file(path: Path, label: str) -> None:
     if not path.exists() or not path.is_file():
         raise SystemExit(f"{label} not found: {path}")
 
+    if path.suffix.lower() not in SUPPORTED_EXTENSIONS:
+        raise SystemExit(
+            f"{label} has unsupported file type: {path.suffix or 'unknown'}. "
+            f"Supported types: {supported_file_types()}."
+        )
+
+
+def supported_file_types() -> str:
+    """Return supported payroll input extensions for CLI messages."""
+    return ", ".join(sorted(SUPPORTED_EXTENSIONS))
+
 
 def resolve_output_paths(
     args: argparse.Namespace,
@@ -306,7 +319,30 @@ def anomaly_counts(anomalies_df: pd.DataFrame) -> dict[str, int]:
 
 def main() -> None:
     """Run the CLI entry point."""
-    raise SystemExit(run_cli())
+    try:
+        raise SystemExit(run_cli())
+    except SystemExit as exc:
+        if isinstance(exc.code, str):
+            print(cli_failure_message(exc.code), file=sys.stderr)
+            raise SystemExit(1) from exc
+
+        raise
+    except Exception as exc:
+        print(cli_failure_message(str(exc)), file=sys.stderr)
+        raise SystemExit(1) from exc
+
+
+def cli_failure_message(reason: str) -> str:
+    """Return the short failure message an automation agent can read."""
+    return "\n".join(
+        [
+            "Payroll review failed.",
+            "",
+            f"Reason: {reason}",
+            "",
+            "No files were moved, deleted, approved, rejected, exported, or sent.",
+        ]
+    )
 
 
 if __name__ == "__main__":

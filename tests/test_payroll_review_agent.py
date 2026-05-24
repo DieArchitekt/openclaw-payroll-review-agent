@@ -30,7 +30,12 @@ from processors.openclaw_file_pairing import (
 from processors.openclaw_reporting import review_completion_message
 from processors.payroll_processor_v1.extractor import extract_payroll
 from processors.payroll_processor_v1.models import PayrollExtraction
-from processors.payroll_review_cli import output_prefix, run_cli
+from processors.payroll_review_cli import (
+    cli_failure_message,
+    output_prefix,
+    run_cli,
+    supported_file_types,
+)
 from processors.payroll_review_workflow import run_payroll_review
 from processors.reconciliation_engine_v1 import reconcile_payroll
 from processors.report_generator import generate_review_workbook
@@ -552,3 +557,24 @@ def test_openclaw_completion_message_is_redacted():
     assert "Human review is required before approval/export." in message
     assert "12345.67" not in message
     assert "client-a_2026-05_current.csv" not in message
+
+
+def test_cli_rejects_unsupported_explicit_input_file(tmp_path):
+    current = tmp_path / "current.docx"
+    previous = tmp_path / "previous.csv"
+    current.write_text("not supported", encoding="utf-8")
+    previous.write_text("Employee,NetPay\nAda Lovelace,2350\n", encoding="utf-8")
+
+    with pytest.raises(SystemExit) as exc:
+        run_cli([str(current), str(previous)])
+
+    assert "unsupported file type" in str(exc.value)
+    assert supported_file_types() in str(exc.value)
+
+
+def test_cli_failure_message_is_short_and_non_destructive():
+    message = cli_failure_message("Current payroll file not found: missing.csv")
+
+    assert "Payroll review failed." in message
+    assert "Current payroll file not found" in message
+    assert "No files were moved" in message

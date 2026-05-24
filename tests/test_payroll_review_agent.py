@@ -6,6 +6,7 @@ from types import SimpleNamespace
 from openpyxl import load_workbook
 
 from processors.anomaly_detector_v1 import detect_anomalies
+import pandas as pd
 import pytest
 
 from processors.approval_workflow_v1 import (
@@ -21,6 +22,13 @@ from processors.approval_workflow_v1 import (
     mark_reviewed,
     raise_queries,
     reject_review,
+)
+from processors.agent_controls_v1 import review_gate
+from processors.agent_controls_v1.constants import (
+    BLOCKER_NO_CURRENT_ROWS,
+    BLOCKER_NO_PREVIOUS_ROWS,
+    RECOMMEND_HUMAN_REVIEW,
+    RECOMMEND_REVIEW_BLOCKERS,
 )
 from processors.openclaw_file_pairing import (
     discover_payroll_pairs,
@@ -584,3 +592,43 @@ def test_cli_failure_message_is_short_and_non_destructive():
     assert "Payroll review failed." in message
     assert "Current payroll file not found" in message
     assert "No files were moved" in message
+
+
+def test_review_gate_blocks_empty_extractions_and_high_anomalies():
+    result = SimpleNamespace(
+        current_extraction=PayrollExtraction(rows=[]),
+        previous_extraction=PayrollExtraction(rows=[]),
+        anomalies_df=pd.DataFrame(
+            [{"Severity": "HIGH"}, {"Severity": "HIGH"}, {"Severity": "MEDIUM"}]
+        ),
+    )
+
+    gate = review_gate(result)
+
+    assert gate["human_action_required"] is True
+    assert gate["ready_for_review"] is False
+    assert gate["ready_for_approval"] is False
+    assert gate["high_anomaly_count"] == 2
+    assert gate["medium_anomaly_count"] == 1
+    assert BLOCKER_NO_CURRENT_ROWS in gate["blockers"]
+    assert BLOCKER_NO_PREVIOUS_ROWS in gate["blockers"]
+    assert "2 HIGH payroll anomalies require review." in gate["blockers"]
+    assert gate["recommended_next_action"] == RECOMMEND_REVIEW_BLOCKERS
+
+
+def test_review_gate_allows_human_review_when_no_blockers():
+    result = SimpleNamespace(
+        current_extraction=PayrollExtraction(rows=[{"Employee": "Ada Lovelace"}]),
+        previous_extraction=PayrollExtraction(rows=[{"Employee": "Ada Lovelace"}]),
+        anomalies_df=pd.DataFrame([{"Severity": "MEDIUM"}]),
+    )
+
+    gate = review_gate(result)
+
+    assert gate["human_action_required"] is True
+    assert gate["ready_for_review"] is True
+    assert gate["ready_for_approval"] is False
+    assert gate["high_anomaly_count"] == 0
+    assert gate["medium_anomaly_count"] == 1
+    assert gate["blockers"] == []
+    assert gate["recommended_next_action"] == RECOMMEND_HUMAN_REVIEW

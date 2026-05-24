@@ -1,0 +1,10 @@
+.git/
+.venv/
+.pytest_cache/
+__pycache__/
+outputs/reviews/
+incoming_payroll/
+real_data/
+*.xlsx
+*.xlsm
+*.pdf

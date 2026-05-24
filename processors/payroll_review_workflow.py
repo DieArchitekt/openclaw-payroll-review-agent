@@ -10,7 +10,7 @@ from processors.payroll_processor_v1.extractor import extract_payroll
 from processors.payroll_processor_v1.io_utils import write_uploaded_file
 from processors.payroll_processor_v1.models import PayrollExtraction, UploadedFile
 from processors.reconciliation_engine_v1 import reconcile_payroll
-from processors.report_generator import generate_review_workbook
+from processors.report_generator_v1 import generate_review_workbook
 
 
 @dataclass(slots=True)

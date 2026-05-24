@@ -1,27 +1,20 @@
 import argparse
 import json
-import re
 import sys
 from dataclasses import dataclass
-from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-import pandas as pd
-
 from processors.agent_controls_v1 import build_agent_receipt
+from processors.cli_paths import DEFAULT_OUTPUT_DIR, resolve_output_paths
 from processors.openclaw_file_pairing import (
     SUPPORTED_EXTENSIONS,
     find_payroll_pair,
     wait_for_stable_payroll_pair,
 )
-from processors.openclaw_reporting import ACTIVE_AGENT_MODE, review_completion_message
-from processors.payroll_review_workflow import PayrollReviewResult, run_payroll_review
-
-DEFAULT_OUTPUT_DIR = Path("outputs/reviews")
-CURRENT_MARKER_PATTERN = re.compile(r"([_-])current$", re.IGNORECASE)
-PERIOD_PATTERN = re.compile(r"\d{4}-\d{2}")
-SAFE_PREFIX_PATTERN = re.compile(r"[^A-Za-z0-9._-]+")
+from processors.openclaw_reporting import review_completion_message
+from processors.payroll_review_summary import review_summary_payload
+from processors.payroll_review_workflow import run_payroll_review
 
 
 @dataclass(slots=True)
@@ -206,100 +199,6 @@ def supported_file_types() -> str:
     return ", ".join(sorted(SUPPORTED_EXTENSIONS))
 
 
-def resolve_output_paths(
-    args: argparse.Namespace,
-    current_path: Path,
-) -> tuple[Path, Path | None, Path | None]:
-    """Return workbook and summary paths without overwriting existing outputs."""
-    if args.out:
-        output_path = unused_path(args.out)
-        summary_path = unused_path(args.summary_json) if args.summary_json else None
-        receipt_path = (
-            unused_path(args.agent_receipt_json) if args.agent_receipt_json else None
-        )
-        return output_path, summary_path, receipt_path
-
-    prefix = output_prefix(current_path, args.output_prefix)
-    return unused_review_paths(args.output_dir, prefix)
-
-
-def output_prefix(
-    current_path: Path,
-    explicit_prefix: str | None = None,
-    timestamp: datetime | None = None,
-) -> str:
-    """Return a safe output prefix from an explicit value or current file name."""
-    if explicit_prefix:
-        return safe_output_prefix(explicit_prefix)
-
-    stem = current_path.stem.strip()
-    cleaned_stem = CURRENT_MARKER_PATTERN.sub("", stem).strip("_- ")
-
-    if PERIOD_PATTERN.search(cleaned_stem):
-        return safe_output_prefix(cleaned_stem)
-
-    return safe_output_prefix(f"payroll_review_{timestamp_slug(timestamp)}")
-
-
-def safe_output_prefix(value: str) -> str:
-    """Return a filesystem-safe output prefix."""
-    prefix = SAFE_PREFIX_PATTERN.sub("_", value.strip()).strip("._-")
-    return prefix or f"payroll_review_{timestamp_slug()}"
-
-
-def unused_review_paths(output_dir: Path, prefix: str) -> tuple[Path, Path, Path]:
-    """Return matching workbook and summary paths that do not overwrite files."""
-    review_path = output_dir / f"{prefix}_review.xlsx"
-    summary_path = output_dir / f"{prefix}_summary.json"
-    receipt_path = output_dir / f"{prefix}_receipt.json"
-
-    if (
-        not review_path.exists()
-        and not summary_path.exists()
-        and not receipt_path.exists()
-    ):
-        return review_path, summary_path, receipt_path
-
-    base_prefix = f"{prefix}_{timestamp_slug()}"
-    candidate_review = output_dir / f"{base_prefix}_review.xlsx"
-    candidate_summary = output_dir / f"{base_prefix}_summary.json"
-    candidate_receipt = output_dir / f"{base_prefix}_receipt.json"
-    counter = 2
-
-    while (
-        candidate_review.exists()
-        or candidate_summary.exists()
-        or candidate_receipt.exists()
-    ):
-        candidate_review = output_dir / f"{base_prefix}_{counter}_review.xlsx"
-        candidate_summary = output_dir / f"{base_prefix}_{counter}_summary.json"
-        candidate_receipt = output_dir / f"{base_prefix}_{counter}_receipt.json"
-        counter += 1
-
-    return candidate_review, candidate_summary, candidate_receipt
-
-
-def unused_path(path: Path) -> Path:
-    """Return a path, adding a timestamp suffix if the requested path exists."""
-    if not path.exists():
-        return path
-
-    stem = f"{path.stem}_{timestamp_slug()}"
-    candidate = path.with_name(f"{stem}{path.suffix}")
-    counter = 2
-
-    while candidate.exists():
-        candidate = path.with_name(f"{stem}_{counter}{path.suffix}")
-        counter += 1
-
-    return candidate
-
-
-def timestamp_slug(timestamp: datetime | None = None) -> str:
-    """Return a timestamp suitable for generated file names."""
-    return (timestamp or datetime.now()).strftime("%Y-%m-%d_%H%M%S")
-
-
 def write_review_pack(output_path: Path, workbook_bytes: bytes) -> None:
     """Write review workbook bytes to disk."""
     output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -310,44 +209,6 @@ def write_json(output_path: Path, payload: dict[str, Any]) -> None:
     """Write automation summary JSON to disk."""
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
-
-
-def review_summary_payload(
-    result: PayrollReviewResult,
-    current_path: Path,
-    previous_path: Path,
-    output_path: Path,
-    summary_json_path: Path | None = None,
-    receipt_json_path: Path | None = None,
-) -> dict[str, Any]:
-    """Return a redacted summary payload suitable for automation."""
-    counts = anomaly_counts(result.anomalies_df)
-
-    return {
-        "agent_mode": ACTIVE_AGENT_MODE,
-        "review_id": result.approval_record.review_id,
-        "approval_status": result.approval_record.status,
-        "prepared_by": result.approval_record.prepared_by,
-        "current_file": current_path.name,
-        "previous_file": previous_path.name,
-        "review_pack": str(output_path),
-        "summary_json": str(summary_json_path) if summary_json_path else None,
-        "agent_receipt_json": str(receipt_json_path) if receipt_json_path else None,
-        "variance_threshold": result.variance_threshold,
-        "summary": result.summary,
-        "high_exception_count": counts["HIGH"],
-        "medium_exception_count": counts["MEDIUM"],
-        "exception_count": int(len(result.anomalies_df)),
-    }
-
-
-def anomaly_counts(anomalies_df: pd.DataFrame) -> dict[str, int]:
-    """Return anomaly counts by severity."""
-    if anomalies_df.empty or "Severity" not in anomalies_df.columns:
-        return {"HIGH": 0, "MEDIUM": 0}
-
-    counts = anomalies_df["Severity"].value_counts()
-    return {"HIGH": int(counts.get("HIGH", 0)), "MEDIUM": int(counts.get("MEDIUM", 0))}
 
 
 def main() -> None:

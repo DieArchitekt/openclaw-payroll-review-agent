@@ -5,7 +5,7 @@ from .payroll_review_workflow import (
     run_payroll_review,
     severity_counts,
 )
-from .report_generator import generate_review_workbook
+from .report_generator_v1 import generate_review_workbook
 
 __all__ = [
     "PayrollReviewResult",

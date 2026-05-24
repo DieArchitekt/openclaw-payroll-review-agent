@@ -8,7 +8,7 @@ from processors.approval_workflow_v1 import (
     reject_review,
 )
 from processors.payroll_review_workflow import PayrollReviewResult
-from processors.report_generator import generate_review_workbook
+from processors.report_generator_v1 import generate_review_workbook
 
 
 def render_approval(result: PayrollReviewResult) -> None:

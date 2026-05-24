@@ -38,6 +38,7 @@ from processors.agent_controls_v1.receipt import (
 from processors.openclaw_file_pairing import (
     discover_payroll_pairs,
     find_payroll_pair,
+    is_supported_payroll_file,
     wait_for_stable_payroll_pair,
 )
 from processors.openclaw_reporting import (
@@ -455,6 +456,52 @@ def test_full_review_cli_can_use_incoming_root(tmp_path):
     assert payload["previous_file"] == "payroll_previous.csv"
 
 
+def test_full_review_cli_incoming_root_writes_openclaw_contract_outputs(tmp_path):
+    incoming = tmp_path / "incoming_payroll"
+    current_dir = incoming / "current"
+    previous_dir = incoming / "previous"
+    output_dir = tmp_path / "reviews"
+    current_dir.mkdir(parents=True)
+    previous_dir.mkdir(parents=True)
+    (current_dir / "client-a_2026-05_current.csv").write_text(
+        "Employee,GrossPay,PAYE,EmployeeNI,NetPay,EmployerNI,EmployerPension\n"
+        "Ada Lovelace,3000,400,250,2350,300,150\n",
+        encoding="utf-8",
+    )
+    (previous_dir / "client-a_2026-04_previous.csv").write_text(
+        "Employee,GrossPay,PAYE,EmployeeNI,NetPay,EmployerNI,EmployerPension\n"
+        "Ada Lovelace,2900,390,240,2300,290,145\n",
+        encoding="utf-8",
+    )
+
+    exit_code = run_cli(
+        [
+            "--incoming-root",
+            str(incoming),
+            "--output-dir",
+            str(output_dir),
+            "--prepared-by",
+            "OpenClaw",
+        ]
+    )
+
+    review_pack = output_dir / "client-a_2026-05_review.xlsx"
+    summary_json = output_dir / "client-a_2026-05_summary.json"
+    receipt_json = output_dir / "client-a_2026-05_receipt.json"
+    summary = json.loads(summary_json.read_text(encoding="utf-8"))
+    receipt = json.loads(receipt_json.read_text(encoding="utf-8"))
+    assert exit_code == 0
+    assert review_pack.exists()
+    assert summary_json.exists()
+    assert receipt_json.exists()
+    assert summary["agent_receipt_json"] == str(receipt_json)
+    assert receipt["agent_mode"] == AGENT_MODE_READ_ONLY_REVIEW
+    assert receipt["human_action_required"] is True
+    assert receipt["source_files_modified"] is False
+    assert receipt["external_messages_sent"] is False
+    assert receipt["approval_performed_by_agent"] is False
+
+
 def test_wait_for_stable_payroll_pair_returns_existing_stable_pair(tmp_path):
     current_dir = tmp_path / "current"
     previous_dir = tmp_path / "previous"
@@ -474,6 +521,47 @@ def test_wait_for_stable_payroll_pair_returns_existing_stable_pair(tmp_path):
 
     assert pair.current_path == current_file
     assert pair.previous_path == previous_file
+
+
+def test_openclaw_pairing_rejects_missing_previous_file(tmp_path):
+    current_dir = tmp_path / "current"
+    previous_dir = tmp_path / "previous"
+    current_dir.mkdir()
+    previous_dir.mkdir()
+    (current_dir / "client-a_2026-05_current.csv").write_text(
+        "current",
+        encoding="utf-8",
+    )
+
+    with pytest.raises(FileNotFoundError):
+        find_payroll_pair(tmp_path)
+
+
+def test_openclaw_pairing_rejects_multiple_pairs(tmp_path):
+    current_dir = tmp_path / "current"
+    previous_dir = tmp_path / "previous"
+    current_dir.mkdir()
+    previous_dir.mkdir()
+
+    for client in ("client-a", "client-b"):
+        (current_dir / f"{client}_2026-05_current.csv").write_text(
+            "current",
+            encoding="utf-8",
+        )
+        (previous_dir / f"{client}_2026-04_previous.csv").write_text(
+            "previous",
+            encoding="utf-8",
+        )
+
+    with pytest.raises(ValueError):
+        find_payroll_pair(tmp_path)
+
+
+def test_openclaw_pairing_rejects_unsupported_file_type(tmp_path):
+    source = tmp_path / "payroll_current.docx"
+    source.write_text("not supported", encoding="utf-8")
+
+    assert is_supported_payroll_file(source) is False
 
 
 def test_full_review_cli_print_json_outputs_machine_readable_summary(tmp_path, capsys):

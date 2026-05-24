@@ -1,4 +1,5 @@
 from io import BytesIO
+import json
 from types import SimpleNamespace
 
 from openpyxl import load_workbook
@@ -22,6 +23,7 @@ from processors.approval_workflow_v1 import (
 )
 from processors.payroll_processor_v1.extractor import extract_payroll
 from processors.payroll_processor_v1.models import PayrollExtraction
+from processors.payroll_review_cli import run_cli
 from processors.payroll_review_workflow import run_payroll_review
 from processors.reconciliation_engine_v1 import reconcile_payroll
 from processors.report_generator import generate_review_workbook
@@ -315,3 +317,41 @@ def test_approval_invalid_transitions_are_blocked():
 
     with pytest.raises(ValueError):
         mark_exported(rejected, "exporter")
+
+
+def test_full_review_cli_writes_workbook_and_summary_json(tmp_path):
+    current = tmp_path / "current.csv"
+    previous = tmp_path / "previous.csv"
+    output = tmp_path / "review.xlsx"
+    summary_json = tmp_path / "summary.json"
+    current.write_text(
+        "Employee,GrossPay,PAYE,EmployeeNI,NetPay,EmployerNI,EmployerPension\n"
+        "Ada Lovelace,3000,400,250,2350,300,150\n",
+        encoding="utf-8",
+    )
+    previous.write_text(
+        "Employee,GrossPay,PAYE,EmployeeNI,NetPay,EmployerNI,EmployerPension\n"
+        "Ada Lovelace,2900,390,240,2300,290,145\n",
+        encoding="utf-8",
+    )
+
+    exit_code = run_cli(
+        [
+            str(current),
+            str(previous),
+            "--out",
+            str(output),
+            "--summary-json",
+            str(summary_json),
+            "--prepared-by",
+            "OpenClaw",
+        ]
+    )
+
+    payload = json.loads(summary_json.read_text(encoding="utf-8"))
+    assert exit_code == 0
+    assert output.exists()
+    assert output.read_bytes().startswith(b"PK")
+    assert payload["approval_status"] == STATUS_PREPARED
+    assert payload["prepared_by"] == "OpenClaw"
+    assert payload["current_file"] == "current.csv"

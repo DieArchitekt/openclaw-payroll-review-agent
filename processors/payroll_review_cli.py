@@ -6,6 +6,7 @@ from typing import Any
 
 import pandas as pd
 
+from processors.openclaw_file_pairing import find_payroll_pair
 from processors.payroll_review_workflow import PayrollReviewResult, run_payroll_review
 
 DEFAULT_OUTPUT_PATH = Path("outputs/reviews/payroll_review.xlsx")
@@ -32,8 +33,13 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="Run a payroll review from current and previous payroll files."
     )
-    parser.add_argument("current", type=Path, help="Current payroll file")
-    parser.add_argument("previous", type=Path, help="Previous payroll file")
+    parser.add_argument("current", nargs="?", type=Path, help="Current payroll file")
+    parser.add_argument("previous", nargs="?", type=Path, help="Previous payroll file")
+    parser.add_argument(
+        "--incoming-root",
+        type=Path,
+        help="Incoming payroll folder containing current/ and previous/ subfolders",
+    )
     parser.add_argument(
         "-o",
         "--out",
@@ -69,17 +75,16 @@ def build_parser() -> argparse.ArgumentParser:
 def run_cli(argv: list[str] | None = None) -> int:
     """Run the full payroll review from the command line."""
     args = build_parser().parse_args(argv)
-    validate_input_file(args.current, "Current payroll file")
-    validate_input_file(args.previous, "Previous payroll file")
+    current_path, previous_path = input_paths(args)
 
     result = run_payroll_review(
-        LocalPayrollFile(args.current),
-        LocalPayrollFile(args.previous),
+        LocalPayrollFile(current_path),
+        LocalPayrollFile(previous_path),
         variance_threshold=args.variance_threshold,
         prepared_by=args.prepared_by,
     )
     write_review_pack(args.out, result.review_workbook_bytes)
-    payload = review_summary_payload(result, args.current, args.previous, args.out)
+    payload = review_summary_payload(result, current_path, previous_path, args.out)
 
     if args.summary_json:
         write_json(args.summary_json, payload)
@@ -94,6 +99,24 @@ def run_cli(argv: list[str] | None = None) -> int:
         print(f"Medium exceptions: {payload['medium_exception_count']}")
 
     return 0
+
+
+def input_paths(args: argparse.Namespace) -> tuple[Path, Path]:
+    """Return current and previous input paths from explicit files or an incoming folder."""
+    if args.incoming_root:
+        try:
+            pair = find_payroll_pair(args.incoming_root)
+        except (FileNotFoundError, ValueError) as exc:
+            raise SystemExit(str(exc)) from exc
+
+        return pair.current_path, pair.previous_path
+
+    if not args.current or not args.previous:
+        raise SystemExit("Provide current and previous files, or use --incoming-root.")
+
+    validate_input_file(args.current, "Current payroll file")
+    validate_input_file(args.previous, "Previous payroll file")
+    return args.current, args.previous
 
 
 def validate_input_file(path: Path, label: str) -> None:

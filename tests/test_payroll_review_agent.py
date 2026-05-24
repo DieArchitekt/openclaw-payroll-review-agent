@@ -21,6 +21,7 @@ from processors.approval_workflow_v1 import (
     raise_queries,
     reject_review,
 )
+from processors.openclaw_file_pairing import discover_payroll_pairs, find_payroll_pair
 from processors.payroll_processor_v1.extractor import extract_payroll
 from processors.payroll_processor_v1.models import PayrollExtraction
 from processors.payroll_review_cli import run_cli
@@ -355,3 +356,60 @@ def test_full_review_cli_writes_workbook_and_summary_json(tmp_path):
     assert payload["approval_status"] == STATUS_PREPARED
     assert payload["prepared_by"] == "OpenClaw"
     assert payload["current_file"] == "current.csv"
+
+
+def test_openclaw_folder_pairing_discovers_matching_current_previous_files(tmp_path):
+    current_dir = tmp_path / "current"
+    previous_dir = tmp_path / "previous"
+    current_dir.mkdir()
+    previous_dir.mkdir()
+    current_file = current_dir / "client-a_2026-05_current.csv"
+    previous_file = previous_dir / "client-a_2026-04_previous.csv"
+    current_file.write_text("current", encoding="utf-8")
+    previous_file.write_text("previous", encoding="utf-8")
+
+    pair = find_payroll_pair(tmp_path)
+
+    assert pair.key == "client-a"
+    assert pair.current_path == current_file
+    assert pair.previous_path == previous_file
+    assert discover_payroll_pairs(tmp_path) == [pair]
+
+
+def test_full_review_cli_can_use_incoming_root(tmp_path):
+    incoming = tmp_path / "incoming_payroll"
+    current_dir = incoming / "current"
+    previous_dir = incoming / "previous"
+    current_dir.mkdir(parents=True)
+    previous_dir.mkdir(parents=True)
+    output = tmp_path / "review.xlsx"
+    summary_json = tmp_path / "summary.json"
+    (current_dir / "payroll_current.csv").write_text(
+        "Employee,GrossPay,PAYE,EmployeeNI,NetPay,EmployerNI,EmployerPension\n"
+        "Ada Lovelace,3000,400,250,2350,300,150\n",
+        encoding="utf-8",
+    )
+    (previous_dir / "payroll_previous.csv").write_text(
+        "Employee,GrossPay,PAYE,EmployeeNI,NetPay,EmployerNI,EmployerPension\n"
+        "Ada Lovelace,2900,390,240,2300,290,145\n",
+        encoding="utf-8",
+    )
+
+    exit_code = run_cli(
+        [
+            "--incoming-root",
+            str(incoming),
+            "--out",
+            str(output),
+            "--summary-json",
+            str(summary_json),
+            "--prepared-by",
+            "OpenClaw",
+        ]
+    )
+
+    payload = json.loads(summary_json.read_text(encoding="utf-8"))
+    assert exit_code == 0
+    assert output.exists()
+    assert payload["current_file"] == "payroll_current.csv"
+    assert payload["previous_file"] == "payroll_previous.csv"

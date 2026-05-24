@@ -23,12 +23,17 @@ from processors.approval_workflow_v1 import (
     raise_queries,
     reject_review,
 )
-from processors.agent_controls_v1 import review_gate
+from processors.agent_controls_v1 import build_agent_receipt, review_gate
 from processors.agent_controls_v1.constants import (
     BLOCKER_NO_CURRENT_ROWS,
     BLOCKER_NO_PREVIOUS_ROWS,
+    RECOMMEND_HIGH_ANOMALIES,
     RECOMMEND_HUMAN_REVIEW,
     RECOMMEND_REVIEW_BLOCKERS,
+)
+from processors.agent_controls_v1.receipt import (
+    RUN_STATUS_BLOCKED,
+    RUN_STATUS_COMPLETED_WITH_EXCEPTIONS,
 )
 from processors.openclaw_file_pairing import (
     discover_payroll_pairs,
@@ -348,6 +353,7 @@ def test_full_review_cli_writes_workbook_and_summary_json(tmp_path):
     previous = tmp_path / "previous.csv"
     output = tmp_path / "review.xlsx"
     summary_json = tmp_path / "summary.json"
+    receipt_json = tmp_path / "receipt.json"
     current.write_text(
         "Employee,GrossPay,PAYE,EmployeeNI,NetPay,EmployerNI,EmployerPension\n"
         "Ada Lovelace,3000,400,250,2350,300,150\n",
@@ -367,17 +373,27 @@ def test_full_review_cli_writes_workbook_and_summary_json(tmp_path):
             str(output),
             "--summary-json",
             str(summary_json),
+            "--agent-receipt-json",
+            str(receipt_json),
             "--prepared-by",
             "OpenClaw",
         ]
     )
 
     payload = json.loads(summary_json.read_text(encoding="utf-8"))
+    receipt = json.loads(receipt_json.read_text(encoding="utf-8"))
     assert exit_code == 0
     assert output.exists()
     assert output.read_bytes().startswith(b"PK")
+    assert receipt_json.exists()
     assert payload["approval_status"] == STATUS_PREPARED
     assert payload["agent_mode"] == AGENT_MODE_READ_ONLY_REVIEW
+    assert payload["agent_receipt_json"] == str(receipt_json)
+    assert receipt["agent_mode"] == AGENT_MODE_READ_ONLY_REVIEW
+    assert receipt["human_action_required"] is True
+    assert receipt["source_files_modified"] is False
+    assert receipt["external_messages_sent"] is False
+    assert receipt["approval_performed_by_agent"] is False
     assert payload["prepared_by"] == "OpenClaw"
     assert payload["current_file"] == "current.csv"
 
@@ -537,10 +553,12 @@ def test_cli_default_output_paths_are_named_and_do_not_overwrite(tmp_path):
 
     review_packs = sorted(output_dir.glob("client-a_2026-05*_review.xlsx"))
     summaries = sorted(output_dir.glob("client-a_2026-05*_summary.json"))
+    receipts = sorted(output_dir.glob("client-a_2026-05*_receipt.json"))
     assert first_exit_code == 0
     assert second_exit_code == 0
     assert len(review_packs) == 2
     assert len(summaries) == 2
+    assert len(receipts) == 2
     assert review_packs[0].read_bytes().startswith(b"PK")
 
 
@@ -632,3 +650,54 @@ def test_review_gate_allows_human_review_when_no_blockers():
     assert gate["medium_anomaly_count"] == 1
     assert gate["blockers"] == []
     assert gate["recommended_next_action"] == RECOMMEND_HUMAN_REVIEW
+
+
+def test_agent_receipt_uses_read_only_contract():
+    result = SimpleNamespace(
+        current_extraction=PayrollExtraction(rows=[{"Employee": "Ada Lovelace"}]),
+        previous_extraction=PayrollExtraction(rows=[{"Employee": "Ada Lovelace"}]),
+        anomalies_df=pd.DataFrame([{"Severity": "HIGH"}, {"Severity": "MEDIUM"}]),
+        approval_record=create_approval_record("OpenClaw"),
+        review_workbook_bytes=b"workbook",
+    )
+
+    receipt = build_agent_receipt(
+        result,
+        Path("outputs/reviews/client-a_2026-05_review.xlsx"),
+        Path("outputs/reviews/client-a_2026-05_summary.json"),
+    )
+
+    assert receipt["agent_mode"] == AGENT_MODE_READ_ONLY_REVIEW
+    assert receipt["human_action_required"] is True
+    assert receipt["source_files_modified"] is False
+    assert receipt["external_messages_sent"] is False
+    assert receipt["approval_performed_by_agent"] is False
+    assert receipt["run_status"] == RUN_STATUS_COMPLETED_WITH_EXCEPTIONS
+    assert receipt["recommended_next_action"] == RECOMMEND_HIGH_ANOMALIES
+    assert receipt["high_anomaly_count"] == 1
+    assert receipt["medium_anomaly_count"] == 1
+    assert receipt["total_anomaly_count"] == 2
+    assert receipt["ready_for_approval"] is False
+    assert receipt["critical_controls"]["required_fields_mapped"] is True
+    assert receipt["critical_controls"]["review_pack_generated"] is True
+    assert receipt["critical_controls"]["high_anomalies_present"] is True
+
+
+def test_agent_receipt_blocks_empty_extraction():
+    result = SimpleNamespace(
+        current_extraction=PayrollExtraction(rows=[]),
+        previous_extraction=PayrollExtraction(rows=[]),
+        anomalies_df=pd.DataFrame(),
+        approval_record=create_approval_record("OpenClaw"),
+        review_workbook_bytes=b"",
+    )
+
+    receipt = build_agent_receipt(result, Path("review.xlsx"), None)
+
+    assert receipt["run_status"] == RUN_STATUS_BLOCKED
+    assert receipt["ready_for_review"] is False
+    assert receipt["ready_for_approval"] is False
+    assert BLOCKER_NO_CURRENT_ROWS in receipt["blockers"]
+    assert BLOCKER_NO_PREVIOUS_ROWS in receipt["blockers"]
+    assert receipt["critical_controls"]["required_fields_mapped"] is False
+    assert receipt["critical_controls"]["review_pack_generated"] is False

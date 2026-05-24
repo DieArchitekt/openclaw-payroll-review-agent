@@ -9,6 +9,7 @@ from typing import Any
 
 import pandas as pd
 
+from processors.agent_controls_v1 import build_agent_receipt
 from processors.openclaw_file_pairing import (
     SUPPORTED_EXTENSIONS,
     find_payroll_pair,
@@ -96,6 +97,11 @@ def build_parser() -> argparse.ArgumentParser:
         help="Optional JSON summary output path for automation",
     )
     parser.add_argument(
+        "--agent-receipt-json",
+        type=Path,
+        help="Optional JSON receipt output path for automation agents",
+    )
+    parser.add_argument(
         "--print-json",
         action="store_true",
         help="Print JSON summary to stdout",
@@ -119,7 +125,10 @@ def run_cli(argv: list[str] | None = None) -> int:
     """Run the full payroll review from the command line."""
     args = build_parser().parse_args(argv)
     current_path, previous_path = input_paths(args)
-    output_path, summary_json_path = resolve_output_paths(args, current_path)
+    output_path, summary_json_path, receipt_json_path = resolve_output_paths(
+        args,
+        current_path,
+    )
 
     result = run_payroll_review(
         LocalPayrollFile(current_path),
@@ -134,10 +143,17 @@ def run_cli(argv: list[str] | None = None) -> int:
         previous_path,
         output_path,
         summary_json_path,
+        receipt_json_path,
     )
 
     if summary_json_path:
         write_json(summary_json_path, payload)
+
+    if receipt_json_path:
+        write_json(
+            receipt_json_path,
+            build_agent_receipt(result, output_path, summary_json_path),
+        )
 
     if args.print_json:
         print(json.dumps(payload, indent=2))
@@ -193,12 +209,15 @@ def supported_file_types() -> str:
 def resolve_output_paths(
     args: argparse.Namespace,
     current_path: Path,
-) -> tuple[Path, Path | None]:
+) -> tuple[Path, Path | None, Path | None]:
     """Return workbook and summary paths without overwriting existing outputs."""
     if args.out:
         output_path = unused_path(args.out)
         summary_path = unused_path(args.summary_json) if args.summary_json else None
-        return output_path, summary_path
+        receipt_path = (
+            unused_path(args.agent_receipt_json) if args.agent_receipt_json else None
+        )
+        return output_path, summary_path, receipt_path
 
     prefix = output_prefix(current_path, args.output_prefix)
     return unused_review_paths(args.output_dir, prefix)
@@ -228,25 +247,36 @@ def safe_output_prefix(value: str) -> str:
     return prefix or f"payroll_review_{timestamp_slug()}"
 
 
-def unused_review_paths(output_dir: Path, prefix: str) -> tuple[Path, Path]:
+def unused_review_paths(output_dir: Path, prefix: str) -> tuple[Path, Path, Path]:
     """Return matching workbook and summary paths that do not overwrite files."""
     review_path = output_dir / f"{prefix}_review.xlsx"
     summary_path = output_dir / f"{prefix}_summary.json"
+    receipt_path = output_dir / f"{prefix}_receipt.json"
 
-    if not review_path.exists() and not summary_path.exists():
-        return review_path, summary_path
+    if (
+        not review_path.exists()
+        and not summary_path.exists()
+        and not receipt_path.exists()
+    ):
+        return review_path, summary_path, receipt_path
 
     base_prefix = f"{prefix}_{timestamp_slug()}"
     candidate_review = output_dir / f"{base_prefix}_review.xlsx"
     candidate_summary = output_dir / f"{base_prefix}_summary.json"
+    candidate_receipt = output_dir / f"{base_prefix}_receipt.json"
     counter = 2
 
-    while candidate_review.exists() or candidate_summary.exists():
+    while (
+        candidate_review.exists()
+        or candidate_summary.exists()
+        or candidate_receipt.exists()
+    ):
         candidate_review = output_dir / f"{base_prefix}_{counter}_review.xlsx"
         candidate_summary = output_dir / f"{base_prefix}_{counter}_summary.json"
+        candidate_receipt = output_dir / f"{base_prefix}_{counter}_receipt.json"
         counter += 1
 
-    return candidate_review, candidate_summary
+    return candidate_review, candidate_summary, candidate_receipt
 
 
 def unused_path(path: Path) -> Path:
@@ -288,6 +318,7 @@ def review_summary_payload(
     previous_path: Path,
     output_path: Path,
     summary_json_path: Path | None = None,
+    receipt_json_path: Path | None = None,
 ) -> dict[str, Any]:
     """Return a redacted summary payload suitable for automation."""
     counts = anomaly_counts(result.anomalies_df)
@@ -301,6 +332,7 @@ def review_summary_payload(
         "previous_file": previous_path.name,
         "review_pack": str(output_path),
         "summary_json": str(summary_json_path) if summary_json_path else None,
+        "agent_receipt_json": str(receipt_json_path) if receipt_json_path else None,
         "variance_threshold": result.variance_threshold,
         "summary": result.summary,
         "high_exception_count": counts["HIGH"],

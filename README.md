@@ -3,45 +3,69 @@
 [![CI](https://github.com/DieArchitekt/openclaw-payroll-review-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/DieArchitekt/openclaw-payroll-review-agent/actions/workflows/ci.yml)
 ![Python](https://img.shields.io/badge/python-3.12-blue)
 
-Controlled payroll review automation for OpenClaw: deterministic checks, local
-evidence packs, and auditable handoff for finance review.
+## *Deterministic automation for payroll oversight.*
 
 ![Review output preview](docs/images/review-output-preview.svg)
 
-Prototype submission for the DataVita OpenClaw Challenge.
+
+## What this is
+A controlled OpenClaw workflow that automates payroll review preparation, generates auditable evidence, and preserves human approval boundaries.
 
 
-## Why this matters
-
-Payroll review is recurring, sensitive, and operationally exposed. OpenClaw
-makes the workflow more consistent without moving decision authority into the
-agent.
+## How this works
+OpenClaw detects payroll inputs, runs a constrained review workflow, generates structured evidence and control outputs, and returns the results for human finance review.
 
 
-## Quick demo
+## Why build this
 
-After setup, run the review against included sample data:
+Payroll review is repetitive, time-sensitive, and operationally risky, yet still heavily dependent on manual reconciliation and fragmented evidence gathering.
+
+
+## Why OpenClaw
+
+Payroll oversight is a constrained, evidence-driven workflow that suits deterministic automation, controlled execution, and explicit operational boundaries.
+
+
+## Automation Model
+
+The scope is intentionally narrow. The agent performs deterministic tasks inside a controlled workflow and within explicit operational boundaries.
+
+The workflow produces measurable outputs rather than subjective responses: reconciliation results, anomaly reports, manifests, receipts, and review workbooks.
+
+The design does not rely on prompting to behave. It relies on constrained tooling, runtime policy, explicit permissions, and reproducible workflows.
+
+
+## How to Run
+
+Install dependencies:
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install -r requirements-dev.txt
+```
+
+On Windows, activate with `.\.venv\Scripts\Activate.ps1`.
+
+Run the Streamlit app:
+
+```bash
+python -m streamlit run app/main.py
+```
+
+Run a sample review from the CLI:
 
 ```bash
 python -m processors.payroll_review_cli sample_data/payroll_controls_current.csv sample_data/payroll_controls_previous.csv --output-dir outputs/reviews/readme_demo --output-prefix readme_demo --prepared-by "README Demo"
 ```
 
-First-run outputs:
+Validate runtime wiring:
 
-```text
-outputs/reviews/readme_demo/readme_demo_review.xlsx
-outputs/reviews/readme_demo/readme_demo_summary.json
-outputs/reviews/readme_demo/readme_demo_receipt.json
-outputs/reviews/readme_demo/readme_demo_manifest.json
+```bash
+python -m processors.openclaw_runtime_v1 check-env
+python -m processors.openclaw_runtime_v1 check-outputs outputs/reviews/readme_demo readme_demo
 ```
-
-
-## Why OpenClaw
-
-Payroll review is a constrained workflow: file arrival, approved command
-execution, structured evidence, and defined operational boundaries.
-
-The repository exposes a constrained command surface for OpenClaw automation.
 
 
 ## Problem
@@ -49,7 +73,7 @@ The repository exposes a constrained command surface for OpenClaw automation.
 Finance teams compare current payroll against previous runs, explain movements,
 check exceptions, and retain approval evidence.
 
-The work is often manual. Inputs can be messy. Headers vary between providers.
+The work is manual. Inputs are messy. Headers vary between providers.
 Evidence can be scattered.
 
 The objective is controlled review automation: faster evidence preparation
@@ -67,19 +91,16 @@ fields, reconciles rows, detects exceptions, and generates a local review pack.
 | A reconciliation and anomaly engine | A finance decision-maker |
 | A local evidence pack generator | A system that sends payroll data externally |
 
-The Streamlit app and CLI both use:
-
-```text
-run_payroll_review(current_file, previous_file, variance_threshold)
-```
-
 
 ## Agent workflow
 
 ![Architecture overview](docs/images/architecture-overview.svg)
 
-OpenClaw operates around the review workflow. It detects files, runs the
-approved wrapper, reads the receipt and manifest, and reports the result.
+The workflow is executed either through a local Streamlit interface (for the user) or a CLI path (for the agent). Both routes call the same underlying review workflow, so the logic remains consistent regardless of how the system is triggered.
+
+The system is interlinked with OpenClaw. The agent requires the framework to execute, and the framework sets the parameters, constraints, success measures, and safeguards.
+
+It detects files, runs the approved wrapper, reads the receipt and manifest, and reports the result.
 
 Runtime policy: `openclaw/runtime_policy.json`.
 
@@ -97,7 +118,8 @@ Runtime policy: `openclaw/runtime_policy.json`.
 
 ## Payroll controls
 
-The controls are review prompts, not final payroll judgement.
+The control checks are designed as review prompts rather than final payroll
+judgement.
 
 | Area | Examples |
 |---|---|
@@ -105,8 +127,6 @@ The controls are review prompts, not final payroll judgement.
 | Financial controls | High net pay, negative values, gross pay with zero tax or NI, bonus/overtime/commission movement |
 | Compliance-oriented checks | Missing pension values, unusually low PAYE or NI against gross pay |
 | Reconciliation checks | Net pay movement, employer cost movement, BACS mismatch, missing department or cost centre |
-
-Client-specific payroll rules would need configuration before live use.
 
 
 ## Example review outputs
@@ -161,7 +181,7 @@ Approval states are represented in the generated review evidence.
 | Approved / Rejected | Human decision recorded |
 | Exported for payment | Downstream finance process, outside agent authority |
 
----
+
 
 ## Repository architecture
 
@@ -180,39 +200,6 @@ Approval states are represented in the generated review evidence.
 | `scripts/` | Wrapper scripts for OpenClaw and local automation |
 
 
-## Run locally
-
-Install dependencies:
-
-```bash
-python -m venv .venv
-source .venv/bin/activate
-python -m pip install --upgrade pip
-python -m pip install -r requirements-dev.txt
-```
-
-On Windows, activate with `.\.venv\Scripts\Activate.ps1`.
-
-Run the Streamlit app:
-
-```bash
-python -m streamlit run app/main.py
-```
-
-Run the OpenClaw wrapper with sample files:
-
-```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\run_openclaw_payroll_review.ps1 -Current ".\sample_data\payroll_controls_current.csv" -Previous ".\sample_data\payroll_controls_previous.csv" -OutputFolder ".\outputs\reviews\openclaw_demo" -OutputPrefix "openclaw_demo" -PreparedBy "OpenClaw"
-```
-
-Validate runtime wiring:
-
-```bash
-python -m processors.openclaw_runtime_v1 check-env
-python -m processors.openclaw_runtime_v1 check-outputs outputs/reviews/readme_demo readme_demo
-```
-
-
 ## Testing
 
 ```bash
@@ -221,7 +208,7 @@ python -m pytest -q
 python -m compileall -q app gui processors tests
 ```
 
-GitHub Actions runs formatting, tests, and a CLI smoke test using sample data.
+GitHub Actions runs formatting, tests, and a CLI test using sample data.
 
 
 ## Business value
@@ -229,26 +216,15 @@ GitHub Actions runs formatting, tests, and a CLI smoke test using sample data.
 The value is operational: less repetitive checking, more consistent evidence,
 clearer exception visibility, and a cleaner review handoff.
 
-A fuller product could add configurable control packs, client-specific mapping,
+A more complete product could add configurable control packs, client-specific mapping,
 role-based review access, audit retention, payroll provider connectors, and
 stronger BACS reconciliation.
-
-
-## Judging criteria
-
-| Criterion | How this submission addresses it |
-|---|---|
-| Originality | Applies OpenClaw to a constrained finance control |
-| Technical thinking | Uses field mapping, reconciliation, anomaly rules, workbook generation, receipts, manifests, CLI tooling, and runtime validation |
-| Business value | Targets a recurring payroll review process with clear operational risk |
-| Security and resilience | Uses local outputs, immutable source files, blocked actions, redaction, hashes, and fail-closed behaviour |
-| Communication | Provides sample data, run commands, diagrams, output examples, and explicit limitations |
 
 
 ## Limitations
 
 - Prototype only; not production payroll approval software.
-- Sample data only; real payroll data should not be committed.
+- Sample data only.
 - Payroll rules need client-specific configuration before live use.
 - OpenClaw runtime permissions must be configured outside this repository.
 - Human review remains required before any payroll decision.

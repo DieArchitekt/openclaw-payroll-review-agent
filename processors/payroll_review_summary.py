@@ -4,6 +4,7 @@ from typing import Any
 import pandas as pd
 
 from processors.openclaw_reporting import ACTIVE_AGENT_MODE
+from processors.path_display import display_path
 from processors.payroll_review_workflow import PayrollReviewResult
 
 
@@ -27,10 +28,10 @@ def review_summary_payload(
         "prepared_by": result.approval_record.prepared_by,
         "current_file": current_path.name,
         "previous_file": previous_path.name,
-        "review_pack": str(output_path),
-        "summary_json": str(summary_json_path) if summary_json_path else None,
-        "agent_receipt_json": str(receipt_json_path) if receipt_json_path else None,
-        "run_manifest_json": str(manifest_json_path) if manifest_json_path else None,
+        "review_pack": display_path(output_path),
+        "summary_json": display_path(summary_json_path),
+        "agent_receipt_json": display_path(receipt_json_path),
+        "run_manifest_json": display_path(manifest_json_path),
         "variance_threshold": result.variance_threshold,
         "summary": result.summary,
         "high_exception_count": counts["HIGH"],

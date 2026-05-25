@@ -9,7 +9,7 @@
 
 
 ## What this is
-A controlled OpenClaw workflow that automates payroll review preparation, generates auditable evidence, and preserves human approval boundaries.
+A controlled OpenClaw workflow for payroll reconciliation, exception detection, and auditable review evidence.
 
 
 ## How this works
@@ -53,6 +53,14 @@ Run the OpenClaw workflow wrapper:
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\run_openclaw_payroll_review.ps1 -IncomingRoot ".\incoming_payroll" -OutputFolder ".\outputs\reviews\judge_run" -OutputPrefix "judge_run" -PreparedBy "OpenClaw"
 ```
+
+Or run the full local verifier:
+
+```powershell
+.\scripts\verify_openclaw_workflow.ps1
+```
+
+The prepared OpenClaw instruction lives at `openclaw/agent_instruction.md`.
 
 The repository includes the competition input pair:
 
@@ -105,9 +113,7 @@ fields, reconciles rows, detects exceptions, and generates a local review pack.
 
 The workflow is executed through the OpenClaw command path. The Streamlit interface is available for human visual inspection, but the project is designed around automation.
 
-The system is interlinked with OpenClaw. The agent requires the framework to execute, and the framework sets the parameters, constraints, success measures, and safeguards.
-
-It detects files, runs the approved wrapper, reads the receipt and manifest, and reports the result.
+OpenClaw is the workflow layer: it runs the approved wrapper, then reports from the generated receipt and manifest.
 
 Runtime policy: `openclaw/runtime_policy.json`.
 
@@ -204,6 +210,7 @@ Approval states are represented in the generated review evidence.
 | `processors/agent_controls_v1/` | Receipt, redaction, and review gate controls |
 | `processors/openclaw_runtime_v1/` | Runtime policy and environment validation |
 | `openclaw/runtime_policy.json` | Machine-readable agent boundary |
+| `openclaw/agent_instruction.md` | Prepared instruction for OpenClaw |
 | `scripts/` | Wrapper scripts for OpenClaw and local automation |
 
 

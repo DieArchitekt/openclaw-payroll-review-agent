@@ -1,21 +1,21 @@
 {
   "agent_mode": "read_only_review",
-  "review_id": "e3f743f5-1e8a-4d2b-85f3-ee269a52ca26",
+  "review_id": "c05aef74-85e2-4048-80c9-33744878a47f",
   "approval_status": "Prepared",
-  "generated_at": "2026-05-25T09:50:46.620054+00:00",
+  "generated_at": "2026-05-25T10:27:51.930612+00:00",
   "human_action_required": true,
   "recommended_next_action": "Review HIGH anomalies before approving payroll.",
   "source_files_modified": false,
   "external_messages_sent": false,
   "approval_performed_by_agent": false,
   "run_status": "completed_with_exceptions",
-  "review_pack": "C:\\Users\\raza\\Desktop\\DataVita\\openclaw-payroll-review-agent\\outputs\\reviews\\openclaw_submission\\openclaw_submission_review.xlsx",
-  "summary_json": "C:\\Users\\raza\\Desktop\\DataVita\\openclaw-payroll-review-agent\\outputs\\reviews\\openclaw_submission\\openclaw_submission_summary.json",
+  "review_pack": "outputs/reviews/openclaw_submission/openclaw_submission_review.xlsx",
+  "summary_json": "outputs/reviews/openclaw_submission/openclaw_submission_summary.json",
   "file_hashes": {
     "current_file_sha256": "b5ca8a5449a1a94ce16cc03ea83f959e2a840dbfe0aaa7601cee651254edce25",
     "previous_file_sha256": "2a69990973734e50ed2031e6c1bc62c54068b1c0f7c0ef55fbd2358f49d2edad",
-    "review_workbook_sha256": "82c0ebf7dc911c19bf33ee6d938bab043224c4803513eff6eb1fc709a56ddbcb",
-    "summary_json_sha256": "1fdd34ea10e1ec96ef6c6d6207a0d335ab4c97801d59b1c438fdf171ad1a38cc"
+    "review_workbook_sha256": "fc45940fb546d2f2236dabcfd337512415ea403b3d60fbb7ee8d339ba0b61c2c",
+    "summary_json_sha256": "705364dd72cdc6728699b9ec65f28d776461ce7fd90011946de7f2bc777356c1"
   },
   "run_metadata": {
     "variance_threshold": 20.0,

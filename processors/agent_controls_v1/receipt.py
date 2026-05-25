@@ -7,6 +7,7 @@ from processors.agent_controls_v1.constants import (
     RECOMMEND_HIGH_ANOMALIES,
 )
 from processors.agent_controls_v1.review_gate import review_gate
+from processors.path_display import display_path
 from processors.payroll_review_workflow import PayrollReviewResult
 from processors.versioning import PAYROLL_RULE_VERSION, PAYROLL_SCHEMA_VERSION
 
@@ -40,8 +41,8 @@ def build_agent_receipt(
         "external_messages_sent": False,
         "approval_performed_by_agent": False,
         "run_status": run_status(result, high_count, medium_count),
-        "review_pack": str(review_pack_path),
-        "summary_json": str(summary_json_path) if summary_json_path else None,
+        "review_pack": display_path(review_pack_path),
+        "summary_json": display_path(summary_json_path),
         "file_hashes": {
             "current_file_sha256": current_file_hash,
             "previous_file_sha256": previous_file_hash,

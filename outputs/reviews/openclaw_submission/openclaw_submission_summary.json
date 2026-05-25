@@ -1,14 +1,14 @@
 {
   "agent_mode": "read_only_review",
-  "review_id": "e3f743f5-1e8a-4d2b-85f3-ee269a52ca26",
+  "review_id": "c05aef74-85e2-4048-80c9-33744878a47f",
   "approval_status": "Prepared",
   "prepared_by": "OpenClaw",
   "current_file": "current.pdf",
   "previous_file": "previous.pdf",
-  "review_pack": "C:\\Users\\raza\\Desktop\\DataVita\\openclaw-payroll-review-agent\\outputs\\reviews\\openclaw_submission\\openclaw_submission_review.xlsx",
-  "summary_json": "C:\\Users\\raza\\Desktop\\DataVita\\openclaw-payroll-review-agent\\outputs\\reviews\\openclaw_submission\\openclaw_submission_summary.json",
-  "agent_receipt_json": "C:\\Users\\raza\\Desktop\\DataVita\\openclaw-payroll-review-agent\\outputs\\reviews\\openclaw_submission\\openclaw_submission_receipt.json",
-  "run_manifest_json": "C:\\Users\\raza\\Desktop\\DataVita\\openclaw-payroll-review-agent\\outputs\\reviews\\openclaw_submission\\openclaw_submission_manifest.json",
+  "review_pack": "outputs/reviews/openclaw_submission/openclaw_submission_review.xlsx",
+  "summary_json": "outputs/reviews/openclaw_submission/openclaw_submission_summary.json",
+  "agent_receipt_json": "outputs/reviews/openclaw_submission/openclaw_submission_receipt.json",
+  "run_manifest_json": "outputs/reviews/openclaw_submission/openclaw_submission_manifest.json",
   "variance_threshold": 20.0,
   "summary": {
     "current_employee_count": 31,
@@ -37,7 +37,7 @@
   "file_hashes": {
     "current_file_sha256": "b5ca8a5449a1a94ce16cc03ea83f959e2a840dbfe0aaa7601cee651254edce25",
     "previous_file_sha256": "2a69990973734e50ed2031e6c1bc62c54068b1c0f7c0ef55fbd2358f49d2edad",
-    "review_workbook_sha256": "82c0ebf7dc911c19bf33ee6d938bab043224c4803513eff6eb1fc709a56ddbcb",
+    "review_workbook_sha256": "fc45940fb546d2f2236dabcfd337512415ea403b3d60fbb7ee8d339ba0b61c2c",
     "summary_json_sha256": ""
   }
 }

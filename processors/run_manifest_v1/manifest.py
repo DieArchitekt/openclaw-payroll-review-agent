@@ -3,6 +3,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+from processors.path_display import display_path
 from processors.payroll_review_workflow import PayrollReviewResult
 from processors.versioning import (
     ACTIVE_AGENT_MODE,
@@ -38,10 +39,10 @@ def build_run_manifest(
             "previous_file": previous_path.name,
         },
         "generated_files": {
-            "review_pack": str(review_pack_path),
-            "summary_json": str(summary_json_path) if summary_json_path else None,
-            "receipt_json": str(receipt_json_path) if receipt_json_path else None,
-            "manifest_json": str(manifest_json_path) if manifest_json_path else None,
+            "review_pack": display_path(review_pack_path),
+            "summary_json": display_path(summary_json_path),
+            "receipt_json": display_path(receipt_json_path),
+            "manifest_json": display_path(manifest_json_path),
         },
         "anomaly_counts": {
             "high": (

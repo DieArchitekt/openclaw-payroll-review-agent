@@ -85,6 +85,42 @@ def test_full_review_cli_defaults_to_incoming_payroll_folder(tmp_path, monkeypat
     assert payload["previous_file"] == "previous.csv"
 
 
+def test_cli_outputs_use_repo_relative_paths_for_repo_outputs(tmp_path, monkeypatch):
+    incoming = tmp_path / "incoming_payroll"
+    output_dir = tmp_path / "outputs" / "reviews" / "relative_paths"
+    incoming.mkdir()
+    write_basic_payroll_pair(
+        incoming / "current.csv",
+        incoming / "previous.csv",
+    )
+    monkeypatch.chdir(tmp_path)
+
+    exit_code = run_cli(
+        [
+            "--output-dir",
+            str(output_dir),
+            "--output-prefix",
+            "relative_paths",
+            "--prepared-by",
+            "OpenClaw",
+        ]
+    )
+
+    summary_path = output_dir / "relative_paths_summary.json"
+    receipt_path = output_dir / "relative_paths_receipt.json"
+    manifest_path = output_dir / "relative_paths_manifest.json"
+    summary = json.loads(summary_path.read_text(encoding="utf-8"))
+    receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+
+    assert exit_code == 0
+    assert summary["review_pack"].startswith("outputs/reviews/relative_paths/")
+    assert receipt["review_pack"].startswith("outputs/reviews/relative_paths/")
+    assert manifest["generated_files"]["review_pack"].startswith(
+        "outputs/reviews/relative_paths/"
+    )
+
+
 def test_wait_for_stable_payroll_pair_returns_existing_stable_pair(tmp_path):
     current_file = tmp_path / "current.csv"
     previous_file = tmp_path / "previous.csv"

@@ -1,0 +1,46 @@
+{
+  "agent_mode": "read_only_review",
+  "review_id": "a5018fa7-e3a5-4618-8fda-becc0ed84391",
+  "approval_status": "Prepared",
+  "generated_at": "2026-05-25T09:51:50.192902+00:00",
+  "human_action_required": true,
+  "recommended_next_action": "Review HIGH anomalies before approving payroll.",
+  "source_files_modified": false,
+  "external_messages_sent": false,
+  "approval_performed_by_agent": false,
+  "run_status": "completed_with_exceptions",
+  "review_pack": "C:\\Users\\raza\\Desktop\\DataVita\\openclaw-payroll-review-agent\\outputs\\reviews\\judge_run\\judge_run_review.xlsx",
+  "summary_json": "C:\\Users\\raza\\Desktop\\DataVita\\openclaw-payroll-review-agent\\outputs\\reviews\\judge_run\\judge_run_summary.json",
+  "file_hashes": {
+    "current_file_sha256": "b5ca8a5449a1a94ce16cc03ea83f959e2a840dbfe0aaa7601cee651254edce25",
+    "previous_file_sha256": "2a69990973734e50ed2031e6c1bc62c54068b1c0f7c0ef55fbd2358f49d2edad",
+    "review_workbook_sha256": "7ec4bcd24783dbbe7f309662d932f16e6e3c63bc9300f10dee107f1a7c8bea80",
+    "summary_json_sha256": "78406407598867dd11a952a2bee8eab01e85b6cd06509730eec100e0d7d495fd"
+  },
+  "run_metadata": {
+    "variance_threshold": 20.0,
+    "thresholds": {
+      "variance_threshold": 20.0,
+      "high_net_pay_threshold": 10000.0,
+      "low_paye_ratio": 0.05,
+      "low_ni_ratio": 0.02,
+      "bacs_tolerance": 0.01
+    },
+    "schema_version": "payroll_processor_v1",
+    "rule_version": "payroll_review_rules_v1"
+  },
+  "high_anomaly_count": 10,
+  "medium_anomaly_count": 114,
+  "total_anomaly_count": 124,
+  "ready_for_review": false,
+  "ready_for_approval": false,
+  "blockers": [
+    "10 HIGH payroll anomalies require review."
+  ],
+  "critical_controls": {
+    "required_fields_mapped": true,
+    "review_pack_generated": true,
+    "high_anomalies_present": true,
+    "prompt_injection_text_present": false
+  }
+}

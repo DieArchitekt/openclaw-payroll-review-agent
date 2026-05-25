@@ -13,12 +13,13 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--incoming-root",
         type=Path,
-        help="Incoming payroll folder containing current/ and previous/ subfolders",
+        default=Path("incoming_payroll"),
+        help="Incoming payroll folder containing current.<type> and previous.<type>",
     )
     parser.add_argument(
         "--wait-for-pair",
         action="store_true",
-        help="Wait for a matching incoming payroll pair before running",
+        help="Wait for the incoming current/previous payroll files before running",
     )
     parser.add_argument(
         "--wait-timeout",

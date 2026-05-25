@@ -25,7 +25,7 @@ def test_safe_paths_block_absolute_and_parent_traversal(tmp_path):
         resolve_agent_path("../outside.xlsx", repo_root=tmp_path)
 
     with pytest.raises(ValueError, match="under"):
-        resolve_agent_path("sample_data/current.csv", repo_root=tmp_path)
+        resolve_agent_path("incoming_payroll/current.pdf", repo_root=tmp_path)
 
 
 def test_audit_log_appends_jsonl_events(tmp_path):
@@ -89,5 +89,5 @@ def test_guarded_action_blocks_bad_path(tmp_path):
             "agent_get_receipt",
             context,
             lambda: {"ok": True},
-            paths=("sample_data/receipt.json",),
+            paths=("incoming_payroll/receipt.json",),
         )

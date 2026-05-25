@@ -1,0 +1,43 @@
+{
+  "manifest_version": "payroll_review_manifest_v1",
+  "generated_at": "2026-05-24T19:17:34.784073+00:00",
+  "review_id": "66c4fbe9-c8ae-471b-83cf-86fde091125a",
+  "approval_status": "Prepared",
+  "prepared_by": "OpenClaw dry run",
+  "schema_version": "payroll_processor_v1",
+  "rule_version": "payroll_review_rules_v1",
+  "thresholds": {
+    "variance_threshold": 20.0,
+    "high_net_pay_threshold": 10000.0,
+    "low_paye_ratio": 0.05,
+    "low_ni_ratio": 0.02,
+    "bacs_tolerance": 0.01
+  },
+  "file_hashes": {
+    "current_file_sha256": "44fe5ef5dae18cb71f5416b0e046ed97081a1e76bb5d12b888946db8d0ecc186",
+    "previous_file_sha256": "51dbe404b5d9e0f9c39a9bd73abb81199f9d256f67f62add88012af52b5239a9",
+    "review_workbook_sha256": "7fc57784a40ade68ba1e9b3c0a1d5d9f5a7497e3affec5fe358f9301081a8e5e",
+    "summary_json_sha256": "e47cec83dc9d4029c469416dd2f2b2d46c43961cd529c649d829bedd10510e85",
+    "receipt_json_sha256": "be500811d918a62a515d1657d26dbdb9c6238dd0eae3bc247e36fe44514b3f9b"
+  },
+  "source_files": {
+    "current_file": "payroll_controls_current.csv",
+    "previous_file": "payroll_controls_previous.csv"
+  },
+  "generated_files": {
+    "review_pack": "C:\\Users\\raza\\Desktop\\DataVita\\openclaw-payroll-review-agent\\outputs\\reviews\\final_ps_dry_run\\sample_openclaw_review.xlsx",
+    "summary_json": "C:\\Users\\raza\\Desktop\\DataVita\\openclaw-payroll-review-agent\\outputs\\reviews\\final_ps_dry_run\\sample_openclaw_summary.json",
+    "receipt_json": "C:\\Users\\raza\\Desktop\\DataVita\\openclaw-payroll-review-agent\\outputs\\reviews\\final_ps_dry_run\\sample_openclaw_receipt.json",
+    "manifest_json": "C:\\Users\\raza\\Desktop\\DataVita\\openclaw-payroll-review-agent\\outputs\\reviews\\final_ps_dry_run\\sample_openclaw_manifest.json"
+  },
+  "anomaly_counts": {
+    "high": 12,
+    "medium": 22,
+    "total": 34
+  },
+  "agent_mode": "read_only_review",
+  "human_action_required": true,
+  "approval_performed_by_agent": false,
+  "external_messages_sent": false,
+  "source_files_modified": false
+}

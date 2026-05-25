@@ -1,14 +1,10 @@
-import re
 import time
 from dataclasses import dataclass
 from pathlib import Path
 
-CURRENT_DIR = "current"
-PREVIOUS_DIR = "previous"
-CURRENT_MARKER = "_current"
-PREVIOUS_MARKER = "_previous"
+CURRENT_STEM = "current"
+PREVIOUS_STEM = "previous"
 SUPPORTED_EXTENSIONS = {".pdf", ".csv", ".txt", ".xlsx", ".xlsm"}
-PERIOD_SUFFIX_PATTERN = re.compile(r"([_-]\d{4}-\d{2})$")
 
 
 @dataclass(frozen=True, slots=True)
@@ -21,19 +17,13 @@ class PayrollFilePair:
 
 
 def find_payroll_pair(incoming_root: Path) -> PayrollFilePair:
-    """Return the single discoverable payroll file pair for an incoming folder."""
+    """Return the single current/previous payroll pair from a flat incoming folder."""
     pairs = discover_payroll_pairs(incoming_root)
 
     if not pairs:
         raise FileNotFoundError(
             f"No payroll file pair found under {incoming_root}. "
-            "Expected files in current/ and previous/ using _current and _previous markers."
-        )
-
-    if len(pairs) > 1:
-        keys = ", ".join(pair.key for pair in pairs)
-        raise ValueError(
-            f"Multiple payroll file pairs found: {keys}. Specify files explicitly."
+            "Expected current.<type> and previous.<type> in the incoming folder."
         )
 
     return pairs[0]
@@ -45,7 +35,7 @@ def wait_for_stable_payroll_pair(
     poll_interval_seconds: float = 2.0,
     stable_checks: int = 2,
 ) -> PayrollFilePair:
-    """Wait for one discoverable payroll pair whose file sizes have stopped changing."""
+    """Wait for the incoming current/previous files to stop changing."""
     deadline = time.monotonic() + timeout_seconds
     last_signature: tuple[tuple[str, int, int], tuple[str, int, int]] | None = None
     stable_count = 0
@@ -82,45 +72,45 @@ def wait_for_stable_payroll_pair(
 
 
 def discover_payroll_pairs(incoming_root: Path) -> list[PayrollFilePair]:
-    """Return matching current/previous files using the OpenClaw folder convention."""
-    current_files = indexed_files(incoming_root / CURRENT_DIR, CURRENT_MARKER)
-    previous_files = indexed_files(incoming_root / PREVIOUS_DIR, PREVIOUS_MARKER)
-    keys = sorted(set(current_files).intersection(previous_files))
+    """Return the current/previous pair using the OpenClaw flat folder convention."""
+    if not incoming_root.exists():
+        return []
+
+    supported_files = sorted(
+        path for path in incoming_root.iterdir() if is_supported_payroll_file(path)
+    )
+    current_files = files_named(supported_files, CURRENT_STEM)
+    previous_files = files_named(supported_files, PREVIOUS_STEM)
+    unexpected_files = [
+        path
+        for path in supported_files
+        if path.stem.lower() not in {CURRENT_STEM, PREVIOUS_STEM}
+    ]
+
+    if unexpected_files:
+        names = ", ".join(path.name for path in unexpected_files)
+        raise ValueError(f"Unexpected payroll files found in incoming folder: {names}.")
+
+    if len(current_files) > 1 or len(previous_files) > 1:
+        raise ValueError(
+            "Incoming folder must contain one current file and one previous file."
+        )
+
+    if not current_files or not previous_files:
+        return []
 
     return [
         PayrollFilePair(
-            key=key,
-            current_path=current_files[key],
-            previous_path=previous_files[key],
+            key="incoming_payroll",
+            current_path=current_files[0],
+            previous_path=previous_files[0],
         )
-        for key in keys
     ]
 
 
-def indexed_files(folder: Path, marker: str) -> dict[str, Path]:
-    """Return supported files in a folder keyed by their payroll pairing key."""
-    if not folder.exists():
-        return {}
-
-    files: dict[str, Path] = {}
-
-    for path in sorted(folder.iterdir()):
-        if not is_supported_payroll_file(path) or marker not in path.stem.lower():
-            continue
-
-        key = pairing_key(path, marker)
-        if key and key not in files:
-            files[key] = path
-
-    return files
-
-
-def pairing_key(path: Path, marker: str) -> str:
-    """Return the stable client/file prefix used to pair current and previous files."""
-    stem = path.stem.lower()
-    prefix = stem.split(marker, 1)[0].strip("_- ")
-    prefix = PERIOD_SUFFIX_PATTERN.sub("", prefix).strip("_- ")
-    return prefix
+def files_named(paths: list[Path], stem: str) -> list[Path]:
+    """Return supported files whose filename stem matches the requested role."""
+    return [path for path in paths if path.stem.lower() == stem]
 
 
 def is_supported_payroll_file(path: Path) -> bool:

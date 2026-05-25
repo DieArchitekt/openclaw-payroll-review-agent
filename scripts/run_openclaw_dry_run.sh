@@ -24,8 +24,7 @@ done
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 "$repo_root/scripts/run_openclaw_payroll_review.sh" \
-  --current "$repo_root/sample_data/payroll_controls_current.csv" \
-  --previous "$repo_root/sample_data/payroll_controls_previous.csv" \
+  --incoming-root "$repo_root/incoming_payroll" \
   --output-folder "$output_folder" \
   --output-prefix "sample_openclaw" \
   --prepared-by "OpenClaw dry run" \

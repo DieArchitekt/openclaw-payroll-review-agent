@@ -6,9 +6,9 @@ from typing import Any
 from processors.versioning import ACTIVE_AGENT_MODE
 
 DEFAULT_POLICY_PATH = Path("openclaw/runtime_policy.json")
-REQUIRED_INCOMING_DIRS = (
-    Path("incoming_payroll/current"),
-    Path("incoming_payroll/previous"),
+REQUIRED_INCOMING_FILES = (
+    Path("incoming_payroll/current.pdf"),
+    Path("incoming_payroll/previous.pdf"),
 )
 
 
@@ -50,9 +50,13 @@ def validate_runtime_environment(
     if policy.get("agent_mode") != ACTIVE_AGENT_MODE:
         errors.append("Runtime policy must use read_only_review mode.")
 
-    for folder in REQUIRED_INCOMING_DIRS:
-        if not (repo_root / folder).exists():
-            errors.append(f"Required incoming folder is missing: {folder}")
+    incoming_root = repo_root / "incoming_payroll"
+    if not incoming_root.exists():
+        errors.append("Required incoming folder is missing: incoming_payroll")
+
+    for file_path in REQUIRED_INCOMING_FILES:
+        if not (repo_root / file_path).exists():
+            errors.append(f"Required incoming payroll file is missing: {file_path}")
 
     for command in policy.get("allowed_commands", []):
         if not (repo_root / command).exists():
@@ -64,13 +68,7 @@ def validate_runtime_environment(
         warnings.append(".gitignore is missing.")
     else:
         gitignore_text = gitignore.read_text(encoding="utf-8")
-        for ignored in (
-            "incoming_payroll/",
-            "outputs/reviews/",
-            "outputs/audit/",
-            "outputs/agent/",
-            "real_data/",
-        ):
+        for ignored in ("real_data/",):
             if ignored not in gitignore_text:
                 warnings.append(f".gitignore does not explicitly ignore {ignored}")
 

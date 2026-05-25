@@ -1,0 +1,43 @@
+{
+  "agent_mode": "read_only_review",
+  "review_id": "eafcbe80-62eb-4eb8-87a0-b9498aa0e855",
+  "approval_status": "Prepared",
+  "prepared_by": "CI",
+  "current_file": "current.pdf",
+  "previous_file": "previous.pdf",
+  "review_pack": "outputs\\reviews\\ci_local_verify\\ci_local_verify_review.xlsx",
+  "summary_json": "outputs\\reviews\\ci_local_verify\\ci_local_verify_summary.json",
+  "agent_receipt_json": "outputs\\reviews\\ci_local_verify\\ci_local_verify_receipt.json",
+  "run_manifest_json": "outputs\\reviews\\ci_local_verify\\ci_local_verify_manifest.json",
+  "variance_threshold": 20.0,
+  "summary": {
+    "current_employee_count": 31,
+    "previous_employee_count": 31,
+    "new_employee_count": 1,
+    "missing_employee_count": 1,
+    "current_total_net_pay": 191047.74000000002,
+    "previous_total_net_pay": 149423.94000000003,
+    "net_pay_change": 41623.79999999999,
+    "net_pay_change_pct": 27.85617886932976,
+    "current_total_employer_cost": 327477.06,
+    "previous_total_employer_cost": 230091.76,
+    "employer_cost_change": 97385.29999999999,
+    "employer_cost_change_pct": 42.32454912770452
+  },
+  "high_exception_count": 10,
+  "medium_exception_count": 114,
+  "exception_count": 124,
+  "run_status": "completed_with_exceptions",
+  "recommended_next_action": "Review HIGH anomalies before approving payroll.",
+  "ready_for_review": false,
+  "ready_for_approval": false,
+  "blockers": [
+    "10 HIGH payroll anomalies require review."
+  ],
+  "file_hashes": {
+    "current_file_sha256": "b5ca8a5449a1a94ce16cc03ea83f959e2a840dbfe0aaa7601cee651254edce25",
+    "previous_file_sha256": "2a69990973734e50ed2031e6c1bc62c54068b1c0f7c0ef55fbd2358f49d2edad",
+    "review_workbook_sha256": "3bd14fd3f27989433c196c22c8f4326837d87b17d26c3f5ee54d638fc84472ca",
+    "summary_json_sha256": ""
+  }
+}

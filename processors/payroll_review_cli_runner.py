@@ -104,6 +104,11 @@ def run_cli(argv: list[str] | None = None) -> int:
 
 
 def input_paths(args: argparse.Namespace) -> tuple[Path, Path]:
+    if args.current and args.previous:
+        validate_input_file(args.current, "Current payroll file")
+        validate_input_file(args.previous, "Previous payroll file")
+        return args.current, args.previous
+
     if args.incoming_root:
         try:
             if args.wait_for_pair:
@@ -120,12 +125,7 @@ def input_paths(args: argparse.Namespace) -> tuple[Path, Path]:
 
         return pair.current_path, pair.previous_path
 
-    if not args.current or not args.previous:
-        raise SystemExit("Provide current and previous files, or use --incoming-root.")
-
-    validate_input_file(args.current, "Current payroll file")
-    validate_input_file(args.previous, "Previous payroll file")
-    return args.current, args.previous
+    raise SystemExit("Provide current and previous files, or use --incoming-root.")
 
 
 def validate_input_file(path: Path, label: str) -> None:

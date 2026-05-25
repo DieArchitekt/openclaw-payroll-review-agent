@@ -1,0 +1,43 @@
+{
+  "manifest_version": "payroll_review_manifest_v1",
+  "generated_at": "2026-05-24T18:26:59.253600+00:00",
+  "review_id": "f61e4d93-6b2f-458a-8dca-75491133ed5f",
+  "approval_status": "Prepared",
+  "prepared_by": "OpenClaw",
+  "schema_version": "payroll_processor_v1",
+  "rule_version": "payroll_review_rules_v1",
+  "thresholds": {
+    "variance_threshold": 20.0,
+    "high_net_pay_threshold": 10000.0,
+    "low_paye_ratio": 0.05,
+    "low_ni_ratio": 0.02,
+    "bacs_tolerance": 0.01
+  },
+  "file_hashes": {
+    "current_file_sha256": "44fe5ef5dae18cb71f5416b0e046ed97081a1e76bb5d12b888946db8d0ecc186",
+    "previous_file_sha256": "51dbe404b5d9e0f9c39a9bd73abb81199f9d256f67f62add88012af52b5239a9",
+    "review_workbook_sha256": "25db189190ab78e2ee31e2c2773a7ed7fdfb51cc882905654b4ebc9f79db3a8a",
+    "summary_json_sha256": "b43d52b6605d181a25e43549435097ab5d327e7552eb045a5623a6299207dbdd",
+    "receipt_json_sha256": "0faaaaccdadc840a42716fa55ecc4c47962b6d1c2cc758deb5ad23a8d62241f1"
+  },
+  "source_files": {
+    "current_file": "payroll_controls_current.csv",
+    "previous_file": "payroll_controls_previous.csv"
+  },
+  "generated_files": {
+    "review_pack": "outputs\\reviews\\safeguards_full_verify\\safeguards_full_verify_review.xlsx",
+    "summary_json": "outputs\\reviews\\safeguards_full_verify\\safeguards_full_verify_summary.json",
+    "receipt_json": "outputs\\reviews\\safeguards_full_verify\\safeguards_full_verify_receipt.json",
+    "manifest_json": "outputs\\reviews\\safeguards_full_verify\\safeguards_full_verify_manifest.json"
+  },
+  "anomaly_counts": {
+    "high": 12,
+    "medium": 22,
+    "total": 34
+  },
+  "agent_mode": "read_only_review",
+  "human_action_required": true,
+  "approval_performed_by_agent": false,
+  "external_messages_sent": false,
+  "source_files_modified": false
+}

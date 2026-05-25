@@ -1,0 +1,27 @@
+{
+  "agent_mode": "read_only_review",
+  "review_id": "b10019ab-eacc-4c5c-91e3-71c2852cff6e",
+  "approval_status": "Prepared",
+  "generated_at": "2026-05-24T13:18:55.345498+00:00",
+  "human_action_required": true,
+  "recommended_next_action": "Review HIGH anomalies before approving payroll.",
+  "source_files_modified": false,
+  "external_messages_sent": false,
+  "approval_performed_by_agent": false,
+  "run_status": "completed_with_exceptions",
+  "review_pack": "C:\\Users\\raza\\Desktop\\DataVita\\openclaw-payroll-review-agent\\outputs\\reviews\\folder_verify\\client-a_2026-05_review.xlsx",
+  "summary_json": "C:\\Users\\raza\\Desktop\\DataVita\\openclaw-payroll-review-agent\\outputs\\reviews\\folder_verify\\client-a_2026-05_summary.json",
+  "high_anomaly_count": 12,
+  "medium_anomaly_count": 22,
+  "total_anomaly_count": 34,
+  "ready_for_review": false,
+  "ready_for_approval": false,
+  "blockers": [
+    "12 HIGH payroll anomalies require review."
+  ],
+  "critical_controls": {
+    "required_fields_mapped": true,
+    "review_pack_generated": true,
+    "high_anomalies_present": true
+  }
+}

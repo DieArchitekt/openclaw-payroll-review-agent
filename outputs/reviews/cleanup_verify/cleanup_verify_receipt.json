@@ -1,0 +1,27 @@
+{
+  "agent_mode": "read_only_review",
+  "review_id": "d8f7cb94-564a-4e19-ae97-a2782d27c40e",
+  "approval_status": "Prepared",
+  "generated_at": "2026-05-24T13:40:01.534765+00:00",
+  "human_action_required": true,
+  "recommended_next_action": "Review HIGH anomalies before approving payroll.",
+  "source_files_modified": false,
+  "external_messages_sent": false,
+  "approval_performed_by_agent": false,
+  "run_status": "completed_with_exceptions",
+  "review_pack": "outputs\\reviews\\cleanup_verify\\cleanup_verify_review.xlsx",
+  "summary_json": "outputs\\reviews\\cleanup_verify\\cleanup_verify_summary.json",
+  "high_anomaly_count": 12,
+  "medium_anomaly_count": 22,
+  "total_anomaly_count": 34,
+  "ready_for_review": false,
+  "ready_for_approval": false,
+  "blockers": [
+    "12 HIGH payroll anomalies require review."
+  ],
+  "critical_controls": {
+    "required_fields_mapped": true,
+    "review_pack_generated": true,
+    "high_anomalies_present": true
+  }
+}

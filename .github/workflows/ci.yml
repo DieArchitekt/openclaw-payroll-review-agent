@@ -29,8 +29,7 @@ jobs:
       - name: Run CLI smoke test
         run: >
           python -m processors.payroll_review_cli
-          sample_data/payroll_controls_current.csv
-          sample_data/payroll_controls_previous.csv
+          --incoming-root incoming_payroll
           --output-dir outputs/reviews/ci
           --output-prefix sample_ci
           --prepared-by CI

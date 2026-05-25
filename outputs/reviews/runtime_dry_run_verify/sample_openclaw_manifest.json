@@ -1,0 +1,43 @@
+{
+  "manifest_version": "payroll_review_manifest_v1",
+  "generated_at": "2026-05-24T18:37:43.400524+00:00",
+  "review_id": "d1b1b1e0-2b43-4236-8a56-eb21c4ff9514",
+  "approval_status": "Prepared",
+  "prepared_by": "OpenClaw dry run",
+  "schema_version": "payroll_processor_v1",
+  "rule_version": "payroll_review_rules_v1",
+  "thresholds": {
+    "variance_threshold": 20.0,
+    "high_net_pay_threshold": 10000.0,
+    "low_paye_ratio": 0.05,
+    "low_ni_ratio": 0.02,
+    "bacs_tolerance": 0.01
+  },
+  "file_hashes": {
+    "current_file_sha256": "44fe5ef5dae18cb71f5416b0e046ed97081a1e76bb5d12b888946db8d0ecc186",
+    "previous_file_sha256": "51dbe404b5d9e0f9c39a9bd73abb81199f9d256f67f62add88012af52b5239a9",
+    "review_workbook_sha256": "2206065969efed079faf1cd078bb3d27be03ec8783ed081ad2bb37500b479061",
+    "summary_json_sha256": "2d69a570f4224b18071ff421a81d0044dae8362e8275b42b966e8d66b6d7574f",
+    "receipt_json_sha256": "af04b08a731ab37cc755df1683c8233e6c57f3768edea01342b78cf371887e49"
+  },
+  "source_files": {
+    "current_file": "payroll_controls_current.csv",
+    "previous_file": "payroll_controls_previous.csv"
+  },
+  "generated_files": {
+    "review_pack": "C:\\Users\\raza\\Desktop\\DataVita\\openclaw-payroll-review-agent\\outputs\\reviews\\runtime_dry_run_verify\\sample_openclaw_review.xlsx",
+    "summary_json": "C:\\Users\\raza\\Desktop\\DataVita\\openclaw-payroll-review-agent\\outputs\\reviews\\runtime_dry_run_verify\\sample_openclaw_summary.json",
+    "receipt_json": "C:\\Users\\raza\\Desktop\\DataVita\\openclaw-payroll-review-agent\\outputs\\reviews\\runtime_dry_run_verify\\sample_openclaw_receipt.json",
+    "manifest_json": "C:\\Users\\raza\\Desktop\\DataVita\\openclaw-payroll-review-agent\\outputs\\reviews\\runtime_dry_run_verify\\sample_openclaw_manifest.json"
+  },
+  "anomaly_counts": {
+    "high": 12,
+    "medium": 22,
+    "total": 34
+  },
+  "agent_mode": "read_only_review",
+  "human_action_required": true,
+  "approval_performed_by_agent": false,
+  "external_messages_sent": false,
+  "source_files_modified": false
+}

@@ -10,14 +10,11 @@ from tests.payroll_test_helpers import write_basic_payroll_pair
 
 def test_full_review_cli_incoming_root_writes_openclaw_contract_outputs(tmp_path):
     incoming = tmp_path / "incoming_payroll"
-    current_dir = incoming / "current"
-    previous_dir = incoming / "previous"
     output_dir = tmp_path / "reviews"
-    current_dir.mkdir(parents=True)
-    previous_dir.mkdir(parents=True)
+    incoming.mkdir()
     write_basic_payroll_pair(
-        current_dir / "client-a_2026-05_current.csv",
-        previous_dir / "client-a_2026-04_previous.csv",
+        incoming / "current.csv",
+        incoming / "previous.csv",
     )
 
     exit_code = run_cli(
@@ -26,15 +23,17 @@ def test_full_review_cli_incoming_root_writes_openclaw_contract_outputs(tmp_path
             str(incoming),
             "--output-dir",
             str(output_dir),
+            "--output-prefix",
+            "sample_incoming",
             "--prepared-by",
             "OpenClaw",
         ]
     )
 
-    review_pack = output_dir / "client-a_2026-05_review.xlsx"
-    summary_json = output_dir / "client-a_2026-05_summary.json"
-    receipt_json = output_dir / "client-a_2026-05_receipt.json"
-    manifest_json = output_dir / "client-a_2026-05_manifest.json"
+    review_pack = output_dir / "sample_incoming_review.xlsx"
+    summary_json = output_dir / "sample_incoming_summary.json"
+    receipt_json = output_dir / "sample_incoming_receipt.json"
+    manifest_json = output_dir / "sample_incoming_manifest.json"
     summary = json.loads(summary_json.read_text(encoding="utf-8"))
     receipt = json.loads(receipt_json.read_text(encoding="utf-8"))
     assert exit_code == 0

@@ -4,18 +4,20 @@
   "allowed_commands": [
     "scripts/run_openclaw_payroll_review.ps1",
     "scripts/run_openclaw_dry_run.ps1",
+    "scripts/verify_openclaw_workflow.ps1",
     "scripts/run_openclaw_payroll_review.sh",
-    "scripts/run_openclaw_dry_run.sh"
+    "scripts/run_openclaw_dry_run.sh",
+    "scripts/verify_openclaw_workflow.sh"
   ],
   "allowed_read_globs": [
     "outputs/reviews/*_receipt.json",
     "outputs/reviews/*_summary.json",
     "outputs/reviews/*_manifest.json",
-    "openclaw/runtime_policy.json"
+    "openclaw/runtime_policy.json",
+    "openclaw/agent_instruction.md"
   ],
   "blocked_read_globs": [
-    "incoming_payroll/current/*",
-    "incoming_payroll/previous/*",
+    "incoming_payroll/*",
     "real_data/*",
     "*.xlsx",
     "*.xlsm"

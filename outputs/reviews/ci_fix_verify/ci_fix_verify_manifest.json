@@ -1,0 +1,43 @@
+{
+  "manifest_version": "payroll_review_manifest_v1",
+  "generated_at": "2026-05-24T19:26:39.444135+00:00",
+  "review_id": "e6b4ca6e-ca8c-47ea-8af9-9e8c1ed08541",
+  "approval_status": "Prepared",
+  "prepared_by": "CI",
+  "schema_version": "payroll_processor_v1",
+  "rule_version": "payroll_review_rules_v1",
+  "thresholds": {
+    "variance_threshold": 20.0,
+    "high_net_pay_threshold": 10000.0,
+    "low_paye_ratio": 0.05,
+    "low_ni_ratio": 0.02,
+    "bacs_tolerance": 0.01
+  },
+  "file_hashes": {
+    "current_file_sha256": "44fe5ef5dae18cb71f5416b0e046ed97081a1e76bb5d12b888946db8d0ecc186",
+    "previous_file_sha256": "51dbe404b5d9e0f9c39a9bd73abb81199f9d256f67f62add88012af52b5239a9",
+    "review_workbook_sha256": "6bc9d90838d13da36d178010b58c9bfd6d45887b6247317586a3831e6d363d25",
+    "summary_json_sha256": "02b2ba16f641c8df3125dfb16cfd82fc4a27df4aa4e7afdb2b13eeaf287bb0b4",
+    "receipt_json_sha256": "4291ea17a51bd92356f59377d10b9d948d6b7afab202c368024d08d31610de2c"
+  },
+  "source_files": {
+    "current_file": "payroll_controls_current.csv",
+    "previous_file": "payroll_controls_previous.csv"
+  },
+  "generated_files": {
+    "review_pack": "outputs\\reviews\\ci_fix_verify\\ci_fix_verify_review.xlsx",
+    "summary_json": "outputs\\reviews\\ci_fix_verify\\ci_fix_verify_summary.json",
+    "receipt_json": "outputs\\reviews\\ci_fix_verify\\ci_fix_verify_receipt.json",
+    "manifest_json": "outputs\\reviews\\ci_fix_verify\\ci_fix_verify_manifest.json"
+  },
+  "anomaly_counts": {
+    "high": 12,
+    "medium": 22,
+    "total": 34
+  },
+  "agent_mode": "read_only_review",
+  "human_action_required": true,
+  "approval_performed_by_agent": false,
+  "external_messages_sent": false,
+  "source_files_modified": false
+}

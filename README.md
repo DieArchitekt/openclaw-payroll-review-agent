@@ -5,7 +5,7 @@
 
 ## *Deterministic automation for payroll oversight.*
 
-![Review output preview](docs/images/review-output-preview.svg)
+![Review output preview](docs/images/header-image.png)
 
 
 ## What this is
@@ -48,23 +48,30 @@ python -m pip install -r requirements-dev.txt
 
 On Windows, activate with `.\.venv\Scripts\Activate.ps1`.
 
-Run the Streamlit app:
+Run the OpenClaw workflow wrapper:
 
-```bash
-python -m streamlit run app/main.py
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\run_openclaw_payroll_review.ps1 -IncomingRoot ".\incoming_payroll" -OutputFolder ".\outputs\reviews\judge_run" -OutputPrefix "judge_run" -PreparedBy "OpenClaw"
 ```
 
-Run a sample review from the CLI:
+The repository includes the competition input pair:
 
-```bash
-python -m processors.payroll_review_cli sample_data/payroll_controls_current.csv sample_data/payroll_controls_previous.csv --output-dir outputs/reviews/readme_demo --output-prefix readme_demo --prepared-by "README Demo"
+```text
+incoming_payroll/current.pdf
+incoming_payroll/previous.pdf
 ```
 
 Validate runtime wiring:
 
 ```bash
 python -m processors.openclaw_runtime_v1 check-env
-python -m processors.openclaw_runtime_v1 check-outputs outputs/reviews/readme_demo readme_demo
+python -m processors.openclaw_runtime_v1 check-outputs outputs/reviews/judge_run judge_run
+```
+
+For human visual inspection only, the Streamlit app can also be launched:
+
+```bash
+python -m streamlit run app/main.py
 ```
 
 
@@ -96,7 +103,7 @@ fields, reconciles rows, detects exceptions, and generates a local review pack.
 
 ![Architecture overview](docs/images/architecture-overview.svg)
 
-The workflow is executed either through a local Streamlit interface (for the user) or a CLI path (for the agent). Both routes call the same underlying review workflow, so the logic remains consistent regardless of how the system is triggered.
+The workflow is executed through the OpenClaw command path. The Streamlit interface is available for human visual inspection, but the project is designed around automation.
 
 The system is interlinked with OpenClaw. The agent requires the framework to execute, and the framework sets the parameters, constraints, success measures, and safeguards.
 
@@ -133,9 +140,9 @@ judgement.
 
 The workflow writes a workbook, summary, receipt, and manifest.
 
-![Workbook preview](docs/images/workbook-preview.svg)
+![Reconciliation Preview](docs/images/rec-window.png)
 
-![Anomaly preview](docs/images/anomaly-preview.svg)
+![Anomaly preview](docs/images/anomalies-window.png)
 
 Receipt excerpt:
 
@@ -208,7 +215,7 @@ python -m pytest -q
 python -m compileall -q app gui processors tests
 ```
 
-GitHub Actions runs formatting, tests, and a CLI test using sample data.
+GitHub Actions runs formatting, tests, and a CLI test using the incoming payroll files.
 
 
 ## Business value
@@ -224,7 +231,7 @@ stronger BACS reconciliation.
 ## Limitations
 
 - Prototype only; not production payroll approval software.
-- Sample data only.
+- Included demonstration PDFs only.
 - Payroll rules need client-specific configuration before live use.
 - OpenClaw runtime permissions must be configured outside this repository.
 - Human review remains required before any payroll decision.
@@ -241,7 +248,6 @@ incoming_payroll/
 openclaw/
 outputs/
 processors/
-sample_data/
 scripts/
 tests/
 ```

@@ -1,0 +1,43 @@
+{
+  "manifest_version": "payroll_review_manifest_v1",
+  "generated_at": "2026-05-24T19:13:29.873242+00:00",
+  "review_id": "230a126b-ce3b-42e8-9ca9-f9c17e798c6d",
+  "approval_status": "Prepared",
+  "prepared_by": "Trim",
+  "schema_version": "payroll_processor_v1",
+  "rule_version": "payroll_review_rules_v1",
+  "thresholds": {
+    "variance_threshold": 20.0,
+    "high_net_pay_threshold": 10000.0,
+    "low_paye_ratio": 0.05,
+    "low_ni_ratio": 0.02,
+    "bacs_tolerance": 0.01
+  },
+  "file_hashes": {
+    "current_file_sha256": "44fe5ef5dae18cb71f5416b0e046ed97081a1e76bb5d12b888946db8d0ecc186",
+    "previous_file_sha256": "51dbe404b5d9e0f9c39a9bd73abb81199f9d256f67f62add88012af52b5239a9",
+    "review_workbook_sha256": "4b36cb77efab3800fc61925d97be354444233a208de0c369d1fafbd2423dbf39",
+    "summary_json_sha256": "3d9dacd0e645b2014e5f5a9e1337a21664144cf53fb813b9ad1f1c1599e4d2b9",
+    "receipt_json_sha256": "97dab377dd86c7d4277988710212006d094033aae5b93cf25ac81c506d5af4ae"
+  },
+  "source_files": {
+    "current_file": "payroll_controls_current.csv",
+    "previous_file": "payroll_controls_previous.csv"
+  },
+  "generated_files": {
+    "review_pack": "outputs\\reviews\\trim_verify\\trim_verify_review.xlsx",
+    "summary_json": "outputs\\reviews\\trim_verify\\trim_verify_summary.json",
+    "receipt_json": "outputs\\reviews\\trim_verify\\trim_verify_receipt.json",
+    "manifest_json": "outputs\\reviews\\trim_verify\\trim_verify_manifest.json"
+  },
+  "anomaly_counts": {
+    "high": 12,
+    "medium": 22,
+    "total": 34
+  },
+  "agent_mode": "read_only_review",
+  "human_action_required": true,
+  "approval_performed_by_agent": false,
+  "external_messages_sent": false,
+  "source_files_modified": false
+}

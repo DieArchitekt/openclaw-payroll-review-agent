@@ -8,13 +8,10 @@ $ErrorActionPreference = "Stop"
 
 $RepoRoot = Resolve-Path (Join-Path $PSScriptRoot "..")
 $WrapperPath = Join-Path $RepoRoot "scripts\run_openclaw_payroll_review.ps1"
-$CurrentPath = Join-Path $RepoRoot "sample_data\payroll_controls_current.csv"
-$PreviousPath = Join-Path $RepoRoot "sample_data\payroll_controls_previous.csv"
 
 if ($PrintJson) {
     & $WrapperPath `
-        -Current $CurrentPath `
-        -Previous $PreviousPath `
+        -IncomingRoot ".\incoming_payroll" `
         -OutputFolder $OutputFolder `
         -OutputPrefix "sample_openclaw" `
         -PreparedBy "OpenClaw dry run" `
@@ -22,8 +19,7 @@ if ($PrintJson) {
 }
 else {
     & $WrapperPath `
-        -Current $CurrentPath `
-        -Previous $PreviousPath `
+        -IncomingRoot ".\incoming_payroll" `
         -OutputFolder $OutputFolder `
         -OutputPrefix "sample_openclaw" `
         -PreparedBy "OpenClaw dry run"

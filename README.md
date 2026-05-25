@@ -37,7 +37,7 @@ The design does not rely on prompting to behave. It relies on constrained toolin
 
 ## How to Run
 
-Install dependencies:
+Install Python dependencies:
 
 ```bash
 python -m venv .venv
@@ -48,10 +48,34 @@ python -m pip install -r requirements-dev.txt
 
 On Windows, activate with `.\.venv\Scripts\Activate.ps1`.
 
-Run the OpenClaw workflow wrapper:
+Run the workflow through OpenClaw from the repository root:
+
+```bash
+corepack pnpm openclaw agent --local --agent payroll-review --message "Read openclaw/agent_instruction.md and follow it exactly."
+```
+
+This is the command used for the verified OpenClaw run shown below. It assumes
+OpenClaw is installed/onboarded locally and that Node/Corepack can run `pnpm`.
+
+The prepared OpenClaw instruction lives at `openclaw/agent_instruction.md`.
+
+The repository includes a demonstration input pair:
+
+```text
+incoming_payroll/current.pdf
+incoming_payroll/previous.pdf
+```
+
+The generated evidence is written under:
+
+```text
+outputs/reviews/openclaw_submission/
+```
+
+To run the same workflow without the OpenClaw agent, use the wrapper directly:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\run_openclaw_payroll_review.ps1 -IncomingRoot ".\incoming_payroll" -OutputFolder ".\outputs\reviews\judge_run" -OutputPrefix "judge_run" -PreparedBy "OpenClaw"
+powershell -ExecutionPolicy Bypass -File .\scripts\run_openclaw_payroll_review.ps1 -IncomingRoot ".\incoming_payroll" -OutputFolder ".\outputs\reviews\local_run" -OutputPrefix "local_run" -PreparedBy "OpenClaw"
 ```
 
 Or run the full local verifier:
@@ -60,20 +84,11 @@ Or run the full local verifier:
 .\scripts\verify_openclaw_workflow.ps1
 ```
 
-The prepared OpenClaw instruction lives at `openclaw/agent_instruction.md`.
-
-The repository includes the competition input pair:
-
-```text
-incoming_payroll/current.pdf
-incoming_payroll/previous.pdf
-```
-
 Validate runtime wiring:
 
 ```bash
 python -m processors.openclaw_runtime_v1 check-env
-python -m processors.openclaw_runtime_v1 check-outputs outputs/reviews/judge_run judge_run
+python -m processors.openclaw_runtime_v1 check-outputs outputs/reviews/local_run local_run
 ```
 
 For human visual inspection only, the Streamlit app can also be launched:
@@ -132,7 +147,7 @@ Runtime policy: `openclaw/runtime_policy.json`.
 ## Payroll controls
 
 The control checks are designed as review prompts rather than final payroll
-judgement.
+decisions.
 
 | Area | Examples |
 |---|---|
@@ -142,34 +157,75 @@ judgement.
 | Reconciliation checks | Net pay movement, employer cost movement, BACS mismatch, missing department or cost centre |
 
 
-## Example review outputs
+## Verified OpenClaw run outputs
 
-The workflow writes a workbook, summary, receipt, and manifest.
+The workflow was run through OpenClaw and produced a timestamped evidence set:
+
+```text
+Run status: completed_with_exceptions
+Review pack generated: yes
+Receipt generated: yes
+Manifest generated: yes
+Source files modified: false
+External messages sent: false
+Approval performed by agent: false
+HIGH anomalies: 10
+MEDIUM anomalies: 114
+Recommended next action: Review HIGH anomalies before approving payroll.
+```
+
+```text
+outputs/reviews/openclaw_submission/openclaw_submission_2026-05-25_212230_review.xlsx
+outputs/reviews/openclaw_submission/openclaw_submission_2026-05-25_212230_summary.json
+outputs/reviews/openclaw_submission/openclaw_submission_2026-05-25_212230_receipt.json
+outputs/reviews/openclaw_submission/openclaw_submission_2026-05-25_212230_manifest.json
+```
 
 ![Reconciliation Preview](docs/images/rec-window.png)
 
 ![Anomaly preview](docs/images/anomalies-window.png)
 
-Receipt excerpt:
+Receipt excerpt from the OpenClaw run:
 
 ```json
 {
   "agent_mode": "read_only_review",
+  "review_id": "7fc1027c-993e-40ad-9a3b-7ac7fedf2b43",
+  "approval_status": "Prepared",
   "human_action_required": true,
+  "recommended_next_action": "Review HIGH anomalies before approving payroll.",
   "run_status": "completed_with_exceptions",
   "source_files_modified": false,
   "external_messages_sent": false,
-  "approval_performed_by_agent": false
+  "approval_performed_by_agent": false,
+  "high_anomaly_count": 10,
+  "medium_anomaly_count": 114,
+  "total_anomaly_count": 124,
+  "ready_for_review": false,
+  "ready_for_approval": false
 }
 ```
 
-Manifest excerpt:
+Manifest excerpt from the OpenClaw run:
 
 ```json
 {
-  "current_file_sha256": "44fe5ef5dae18cb71f5416b0e046ed97081a1e76bb5d12b888946db8d0ecc186",
-  "previous_file_sha256": "51dbe404b5d9e0f9c39a9bd73abb81199f9d256f67f62add88012af52b5239a9",
-  "review_workbook_sha256": "62d8447fe72e7aa545ff88055324fa53f8a7fdaed209a5e53362175548df56f9"
+  "manifest_version": "payroll_review_manifest_v1",
+  "prepared_by": "OpenClaw",
+  "source_files": {
+    "current_file": "current.pdf",
+    "previous_file": "previous.pdf"
+  },
+  "anomaly_counts": {
+    "high": 10,
+    "medium": 114,
+    "total": 124
+  },
+  "agent_mode": "read_only_review",
+  "human_action_required": true,
+  "approval_performed_by_agent": false,
+  "external_messages_sent": false,
+  "source_files_modified": false
 }
 ```
 
@@ -258,3 +314,17 @@ processors/
 scripts/
 tests/
 ```
+
+
+## Future Plans
+
+- generate a formal report from the workbook, receipt, and
+  manifest
+- add configurable control packs by employer, payroll provider, or country
+- support reviewer comments, query resolution, and approval history
+- connect to payroll provider exports and payment/BACS files for stronger
+  reconciliation
+- create controlled posting files for finance systems after human approval
+- add role-based access and retained audit trails
+- add client-specific mapping profiles for recurring payroll formats
+- improve exception prioritisation and trend analysis across payroll periods

@@ -3,5 +3,12 @@ __pycache__/
 .pytest_cache/
 *.pyc
 .env
+.openclaw/
+AGENTS.md
+HEARTBEAT.md
+IDENTITY.md
+SOUL.md
+TOOLS.md
+USER.md
 real_data/
 .DS_Store

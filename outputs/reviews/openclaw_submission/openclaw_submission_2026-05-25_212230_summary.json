@@ -1,14 +1,14 @@
 {
   "agent_mode": "read_only_review",
-  "review_id": "c05aef74-85e2-4048-80c9-33744878a47f",
+  "review_id": "7fc1027c-993e-40ad-9a3b-7ac7fedf2b43",
   "approval_status": "Prepared",
   "prepared_by": "OpenClaw",
   "current_file": "current.pdf",
   "previous_file": "previous.pdf",
-  "review_pack": "outputs/reviews/openclaw_submission/openclaw_submission_review.xlsx",
-  "summary_json": "outputs/reviews/openclaw_submission/openclaw_submission_summary.json",
-  "agent_receipt_json": "outputs/reviews/openclaw_submission/openclaw_submission_receipt.json",
-  "run_manifest_json": "outputs/reviews/openclaw_submission/openclaw_submission_manifest.json",
+  "review_pack": "outputs/reviews/openclaw_submission/openclaw_submission_2026-05-25_212230_review.xlsx",
+  "summary_json": "outputs/reviews/openclaw_submission/openclaw_submission_2026-05-25_212230_summary.json",
+  "agent_receipt_json": "outputs/reviews/openclaw_submission/openclaw_submission_2026-05-25_212230_receipt.json",
+  "run_manifest_json": "outputs/reviews/openclaw_submission/openclaw_submission_2026-05-25_212230_manifest.json",
   "variance_threshold": 20.0,
   "summary": {
     "current_employee_count": 31,
@@ -37,7 +37,7 @@
   "file_hashes": {
     "current_file_sha256": "b5ca8a5449a1a94ce16cc03ea83f959e2a840dbfe0aaa7601cee651254edce25",
     "previous_file_sha256": "2a69990973734e50ed2031e6c1bc62c54068b1c0f7c0ef55fbd2358f49d2edad",
-    "review_workbook_sha256": "fc45940fb546d2f2236dabcfd337512415ea403b3d60fbb7ee8d339ba0b61c2c",
+    "review_workbook_sha256": "6822ad673f1e76a9b7292cdd457560db95c07d53ee983953afa38b9cd6cea0f1",
     "summary_json_sha256": ""
   }
 }
